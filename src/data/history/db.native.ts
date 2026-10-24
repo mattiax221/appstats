@@ -1,9 +1,11 @@
 import * as SQLite from 'expo-sqlite';
 
-import type { HistoryMatchRow } from './types';
+import { getBundledSeed } from './seedAsset';
+import type { HistoryMatchRow, HistorySqlite } from './types';
 
 const DB_NAME = 'history.db';
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+let seeded = false;
 
 async function getNativeDb() {
   if (!dbPromise) {
@@ -52,18 +54,100 @@ async function getNativeDb() {
   return dbPromise;
 }
 
-export async function getNativeHistoryDb(): Promise<import('./types').HistorySqlite> {
-  return getNativeDb() as unknown as import('./types').HistorySqlite;
+async function seedIfNeeded(db: SQLite.SQLiteDatabase) {
+  if (seeded) return;
+  const seed = getBundledSeed();
+  const versionKey = `${seed.version}:${seed.generatedAt}`;
+  const meta = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM meta WHERE key = 'seed_version'`,
+  );
+  const countRow = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM matches');
+  if (meta?.value === versionKey && (countRow?.n ?? 0) > 0) {
+    seeded = true;
+    return;
+  }
+
+  await db.withTransactionAsync(async () => {
+    await db.execAsync('DELETE FROM matches; DELETE FROM teams; DELETE FROM competitions;');
+
+    for (const c of seed.competitions) {
+      await db.runAsync(
+        `INSERT INTO competitions (id, code, name, country) VALUES (?, ?, ?, ?)`,
+        [c.id, c.code, c.name, c.country],
+      );
+    }
+    for (const t of seed.teams) {
+      await db.runAsync(
+        `INSERT INTO teams (id, name_key, display_name, crest_url) VALUES (?, ?, ?, ?)`,
+        [t.id, t.name_key, t.display_name, t.crest_url],
+      );
+    }
+    for (const row of seed.matches) {
+      const [
+        competition_id,
+        season,
+        match_date,
+        home_team_id,
+        away_team_id,
+        home_goals,
+        away_goals,
+        ht_home_goals,
+        ht_away_goals,
+        source,
+        source_match_id,
+      ] = row;
+      await db.runAsync(
+        `INSERT INTO matches (
+           source, source_match_id, competition_id, season, match_date,
+           home_team_id, away_team_id, home_goals, away_goals,
+           ht_home_goals, ht_away_goals, status
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'finished')`,
+        [
+          source,
+          source_match_id,
+          competition_id,
+          season,
+          match_date,
+          home_team_id,
+          away_team_id,
+          home_goals,
+          away_goals,
+          ht_home_goals,
+          ht_away_goals,
+        ],
+      );
+    }
+
+    await db.runAsync(
+      `INSERT INTO meta (key, value) VALUES ('seed_version', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [versionKey],
+    );
+  });
+  seeded = true;
+}
+
+export async function ensureHistoryReady(): Promise<void> {
+  const db = await getNativeDb();
+  await seedIfNeeded(db);
+}
+
+export async function getNativeHistoryDb(): Promise<HistorySqlite> {
+  const db = await getNativeDb();
+  await seedIfNeeded(db);
+  return db as unknown as HistorySqlite;
 }
 
 export async function getHistoryMatchCount(): Promise<number> {
   const db = await getNativeDb();
+  await seedIfNeeded(db);
   const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM matches');
   return row?.n ?? 0;
 }
 
 export async function listRecentHistoryMatches(limit = 40): Promise<HistoryMatchRow[]> {
   const db = await getNativeDb();
+  await seedIfNeeded(db);
   const rows = await db.getAllAsync<{
     id: number;
     match_date: string;
@@ -111,7 +195,6 @@ export async function listRecentHistoryMatches(limit = 40): Promise<HistoryMatch
   }));
 }
 
-/** Web-only helpers — stubs on native. */
 export function getWebStore(): never {
   throw new Error('Web store non disponibile su native');
 }

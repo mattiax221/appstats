@@ -41,7 +41,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "history:ingest": "node scripts/history/ingest.mjs",
-    "history:pack": "node scripts/history/pack-for-app.mjs"
+    "history:pack": "node scripts/history/pack-for-app.mjs",
+    "history:export-seed": "node scripts/history/export-seed.mjs"
   },
   "private": true
 }

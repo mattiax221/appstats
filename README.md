@@ -31,15 +31,17 @@ Poi: QR con Expo Go, oppure `a` / `i` / `w`.
 | `npm run history:ingest` | Riempie `data/history.sqlite` (Windows: `node scripts\history\ingest.mjs`) |
 | `npm run history:pack` | Copia il DB in `assets/databases/` (gitignored) |
 
-### Storico (Windows)
+### Storico
+
+L’app include già ~3800 risultati Serie A + Premier (`assets/history/seed.json`).  
+Utenti Windows: `git checkout` + `npx expo start` — **nessun ingest**.
+
+Solo i maintainer aggiornano il seed:
 
 ```bat
 node scripts\history\ingest.mjs
-node scripts\history\pack-for-app.mjs
-npx expo start
+node scripts\history\export-seed.mjs
 ```
-
-In app: **Storico** (da Home o Impostazioni). Non committare il DB pieno.
 
 ## Variabili d’ambiente
 
