@@ -96,6 +96,10 @@ export default function RootLayout() {
             name="standings/[competitionId]"
             options={{ title: 'Classifica', headerBackTitle: 'Indietro' }}
           />
+          <Stack.Screen
+            name="storico"
+            options={{ title: 'Storico', headerBackTitle: 'Indietro' }}
+          />
         </Stack>
       </WebPhoneFrame>
     </QueryProvider>

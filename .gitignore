@@ -51,3 +51,9 @@ Thumbs.db
 
 # testing / coverage
 coverage/
+
+# Historical DB (never commit filled databases)
+/data/
+/assets/databases/history.db
+/assets/databases/history.meta.json
+/assets/databases/history.sqlite

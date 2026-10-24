@@ -27,6 +27,18 @@ export function SettingsScreen() {
       <Text style={styles.title}>Impostazioni</Text>
 
       <PressableScale
+        onPress={() => router.push('/storico')}
+        style={styles.roadmapLink}
+        scaleTo={0.98}
+        accessibilityRole="button">
+        <View>
+          <Text style={styles.roadmapTitle}>Storico</Text>
+          <Text style={styles.roadmapSub}>DB locale · risultati passati</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </PressableScale>
+
+      <PressableScale
         onPress={() => router.push('/roadmap')}
         style={styles.roadmapLink}
         scaleTo={0.98}

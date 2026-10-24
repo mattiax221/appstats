@@ -54,15 +54,24 @@ export function HomeScreen() {
         ))}
       </View>
 
-      {hasKey ? (
+      <View style={styles.quickLinks}>
+        {hasKey ? (
+          <PressableScale
+            onPress={() => router.push(`/standings/${standingsCode}`)}
+            style={styles.classifica}
+            scaleTo={0.98}>
+            <Text style={styles.classificaLabel}>Classifica · {standingsCode}</Text>
+            <Text style={styles.chev}>›</Text>
+          </PressableScale>
+        ) : null}
         <PressableScale
-          onPress={() => router.push(`/standings/${standingsCode}`)}
+          onPress={() => router.push('/storico')}
           style={styles.classifica}
           scaleTo={0.98}>
-          <Text style={styles.classificaLabel}>Classifica · {standingsCode}</Text>
+          <Text style={styles.classificaLabel}>Storico</Text>
           <Text style={styles.chev}>›</Text>
         </PressableScale>
-      ) : null}
+      </View>
 
       {!hasKey ? <ApiKeyEmptyState /> : null}
 
@@ -148,13 +157,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
+  quickLinks: {
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
   classifica: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
     backgroundColor: colors.nightLift,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
