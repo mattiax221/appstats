@@ -1,27 +1,34 @@
 /**
- * AppStats visual language — night pitch, stadium amber.
- * Avoids generic purple dashboards and cream/terracotta tropes.
+ * AppStats — matchday / floodlights / pitch.
+ * Deep field green + charcoal night + sharp lime. No purple, cream, or SaaS gray.
  */
 export const colors = {
-  bg: '#07140E',
-  bgMid: '#0C1F15',
-  bgElevated: '#122A1C',
-  pitch: '#1B4D2F',
-  pitchLine: '#C8F542',
-  amber: '#E8B84A',
-  amberSoft: 'rgba(232, 184, 74, 0.18)',
-  text: '#F2F7F0',
-  textMuted: '#8FA898',
-  border: 'rgba(200, 245, 66, 0.12)',
-  danger: '#E85A4A',
-  tabInactive: '#6B8574',
+  night: '#050A08',
+  nightLift: '#0A1410',
+  charcoal: '#101C16',
+  pitchDeep: '#0C2E1C',
+  pitch: '#154A2C',
+  pitchLit: '#1F6B3E',
+  lime: '#D4FF2A',
+  limeDim: 'rgba(212, 255, 42, 0.16)',
+  limeLine: 'rgba(212, 255, 42, 0.28)',
+  text: '#F4F7F1',
+  textSoft: '#C5D1C8',
+  textMuted: '#7E9186',
+  hairline: 'rgba(244, 247, 241, 0.1)',
+  live: '#D4FF2A',
+  danger: '#FF5C4D',
+  tabInactive: '#6A7D72',
+  /** Stack / boot chrome */
+  bg: '#050A08',
 } as const;
 
 export const fonts = {
   brand: 'BebasNeue_400Regular',
-  body: 'DMSans_400Regular',
-  bodyMedium: 'DMSans_500Medium',
-  bodyBold: 'DMSans_700Bold',
+  body: 'Outfit_400Regular',
+  bodyMedium: 'Outfit_500Medium',
+  bodySemi: 'Outfit_600SemiBold',
+  bodyBold: 'Outfit_700Bold',
 } as const;
 
 export const spacing = {
@@ -31,4 +38,13 @@ export const spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
+  hero: 56,
+} as const;
+
+/** Soft product radii (chips/rows) — not capsule pills everywhere. */
+export const radii = {
+  none: 0,
+  sm: 6,
+  md: 8,
+  lg: 12,
 } as const;

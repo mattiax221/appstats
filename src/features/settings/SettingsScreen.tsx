@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -5,6 +6,7 @@ import {
   hasFootballDataKey,
   hasOddsApiKey,
 } from '@/src/config/env';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
@@ -12,8 +14,8 @@ function KeyStatus({ label, ok }: { label: string; ok: boolean }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.badge, ok ? styles.badgeOk : styles.badgeMissing]}>
-        {ok ? 'configurata' : 'mancante'}
+      <Text style={[styles.status, ok ? styles.ok : styles.missing]}>
+        {ok ? 'ok' : '—'}
       </Text>
     </View>
   );
@@ -22,87 +24,101 @@ function KeyStatus({ label, ok }: { label: string; ok: boolean }) {
 export function SettingsScreen() {
   return (
     <Screen>
-      <Text style={styles.kicker}>Impostazioni</Text>
-      <Text style={styles.title}>Fonti e limiti</Text>
-      <Text style={styles.body}>
-        Chiavi via variabili EXPO_PUBLIC_* (prototipo). Attribution e disclaimer
-        restano in app.
-      </Text>
+      <Text style={styles.title}>Impostazioni</Text>
 
-      <View style={styles.section}>
-        <KeyStatus label="football-data.org" ok={hasFootballDataKey()} />
-        <KeyStatus label="API-Football" ok={hasApiFootballKey()} />
-        <KeyStatus label="The Odds API" ok={hasOddsApiKey()} />
-      </View>
+      <PressableScale
+        onPress={() => router.push('/roadmap')}
+        style={styles.roadmapLink}
+        scaleTo={0.98}
+        accessibilityRole="button">
+        <View>
+          <Text style={styles.roadmapTitle}>Roadmap</Text>
+          <Text style={styles.roadmapSub}>Fasi prodotto · fatto e prossimo</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </PressableScale>
 
-      <Text style={styles.sources}>
-        Fonti: football-data.org · API-Football · The Odds API. Rispetta i limiti
-        del piano free.
-      </Text>
+      <Text style={styles.section}>API</Text>
+      <KeyStatus label="football-data.org" ok={hasFootballDataKey()} />
+      <KeyStatus label="API-Football" ok={hasApiFootballKey()} />
+      <KeyStatus label="The Odds API" ok={hasOddsApiKey()} />
+
       <Text style={styles.disclaimer}>
-        AppStats fornisce informazioni sportive e una lettura delle quote. Non è
-        consulenza sulle scommesse.
+        Informazioni sportive e lettura del mercato. Non è consulenza sulle
+        scommesse.
       </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: colors.amber,
-    marginBottom: spacing.sm,
-  },
   title: {
     fontFamily: fonts.brand,
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: 48,
+    lineHeight: 50,
     color: colors.text,
-    marginBottom: spacing.md,
+    letterSpacing: 1,
+    marginBottom: spacing.lg,
   },
-  body: {
-    fontFamily: fonts.body,
+  roadmapLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.limeLine,
+    gap: spacing.md,
+  },
+  roadmapTitle: {
+    fontFamily: fonts.bodySemi,
     fontSize: 16,
-    lineHeight: 24,
+    color: colors.lime,
+  },
+  roadmapSub: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.textMuted,
-    maxWidth: 360,
+  },
+  chev: {
+    fontFamily: fonts.body,
+    fontSize: 22,
+    color: colors.lime,
   },
   section: {
-    marginTop: spacing.xl,
-    gap: spacing.md,
+    marginBottom: spacing.sm,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.lime,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hairline,
   },
   rowLabel: {
     fontFamily: fonts.bodyMedium,
     fontSize: 15,
     color: colors.text,
   },
-  badge: {
-    fontFamily: fonts.body,
+  status: {
+    fontFamily: fonts.bodySemi,
     fontSize: 12,
-    letterSpacing: 0.3,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  badgeOk: { color: colors.pitchLine },
-  badgeMissing: { color: colors.textMuted },
-  sources: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textMuted,
-  },
+  ok: { color: colors.lime },
+  missing: { color: colors.textMuted },
   disclaimer: {
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,

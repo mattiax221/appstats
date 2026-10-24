@@ -1,49 +1,76 @@
-import { StyleSheet, Text } from 'react-native';
+import { Link } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { mockFavoriteTeams } from '@/src/data/mock/fixtures';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
+import { StaggerItem } from '@/src/ui/StaggerItem';
+import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function FavoritesScreen() {
   return (
     <Screen>
-      <Text style={styles.kicker}>Preferiti</Text>
-      <Text style={styles.title}>Le tue squadre</Text>
-      <Text style={styles.body}>
-        Segui squadre e competizioni per una Home più leggera sui rate limit.
-        Persistenza locale in P3.
-      </Text>
-      <Text style={styles.empty}>Nessun preferito ancora.</Text>
+      <Text style={styles.title}>Preferiti</Text>
+
+      {mockFavoriteTeams.map((team, index) => (
+        <StaggerItem key={team.id} index={index}>
+          <Link href={`/team/${team.id}`} asChild>
+            <PressableScale style={styles.row} scaleTo={0.98}>
+              <TeamCrest
+                uri={team.crestUrl}
+                name={team.name}
+                size={44}
+                delay={80 + index * 50}
+              />
+              <View style={styles.meta}>
+                <Text style={styles.name}>{team.name}</Text>
+                <Text style={styles.comp}>{team.competition}</Text>
+              </View>
+              <Text style={styles.chev}>›</Text>
+            </PressableScale>
+          </Link>
+        </StaggerItem>
+      ))}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: colors.amber,
-    marginBottom: spacing.sm,
-  },
   title: {
     fontFamily: fonts.brand,
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: 48,
+    lineHeight: 50,
     color: colors.text,
-    marginBottom: spacing.md,
+    letterSpacing: 1,
+    marginBottom: spacing.lg,
   },
-  body: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    gap: spacing.md,
+  },
+  meta: { flex: 1, gap: 2 },
+  name: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 17,
+    color: colors.text,
+  },
+  comp: {
     fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 13,
     color: colors.textMuted,
-    maxWidth: 360,
   },
-  empty: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.bodyMedium,
-    fontSize: 15,
-    color: colors.text,
+  chev: {
+    fontFamily: fonts.body,
+    fontSize: 22,
+    color: colors.textMuted,
   },
 });

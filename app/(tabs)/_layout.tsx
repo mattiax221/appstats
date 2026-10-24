@@ -1,65 +1,69 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet, type ColorValue } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { colors, fonts } from '@/src/ui/theme';
-
-function TabIcon({ label, color }: { label: string; color: ColorValue }) {
-  return <Text style={[styles.icon, { color }]}>{label}</Text>;
-}
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.pitchLine,
+        tabBarActiveTintColor: colors.lime,
         tabBarInactiveTintColor: colors.tabInactive,
         tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.border,
+          backgroundColor: colors.night,
+          borderTopColor: colors.hairline,
           borderTopWidth: StyleSheet.hairlineWidth,
-          paddingTop: 4,
+          height: 62,
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+        tabBarItemStyle: {
+          minHeight: 44,
         },
         tabBarLabelStyle: {
           fontFamily: fonts.bodyMedium,
-          fontSize: 11,
+          fontSize: 10,
+          letterSpacing: 0.3,
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon label="◉" color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="football-outline" size={size} color={color as string} />
+          ),
         }}
       />
       <Tabs.Screen
         name="previsioni"
         options={{
           title: 'Previsioni',
-          tabBarIcon: ({ color }) => <TabIcon label="◈" color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="analytics-outline" size={size} color={color as string} />
+          ),
         }}
       />
       <Tabs.Screen
         name="preferiti"
         options={{
           title: 'Preferiti',
-          tabBarIcon: ({ color }) => <TabIcon label="★" color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="star-outline" size={size} color={color as string} />
+          ),
         }}
       />
       <Tabs.Screen
         name="impostazioni"
         options={{
           title: 'Impostazioni',
-          tabBarIcon: ({ color }) => <TabIcon label="☰" color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color as string} />
+          ),
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  icon: {
-    fontSize: 16,
-    lineHeight: 20,
-  },
-});
