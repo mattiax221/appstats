@@ -2,6 +2,7 @@ import { Link, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useFavorites } from '@/src/data/favorites/useFavorites';
 import {
   getTeam,
   getTeamStats,
@@ -19,6 +20,7 @@ export function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const teamId = parseTeamParam(typeof id === 'string' ? id : undefined);
   const team = teamId != null ? getTeam(teamId) : null;
+  const fav = useFavorites();
   const stats = useMemo(
     () => (teamId != null ? getTeamStats(teamId, 10) : null),
     [teamId],
@@ -27,6 +29,7 @@ export function TeamDetailScreen() {
     () => (teamId != null ? listTeamMatches(teamId, 12) : []),
     [teamId],
   );
+  const isFav = teamId != null && fav.isTeamFavorite(teamId);
 
   if (!team || !stats) {
     return (
@@ -44,6 +47,14 @@ export function TeamDetailScreen() {
           <Text style={styles.title}>{team.name}</Text>
           <Text style={styles.comp}>Ultime {stats.played} partite</Text>
         </View>
+        <PressableScale
+          onPress={() => void fav.toggleTeam(team.id)}
+          style={styles.favBtn}
+          scaleTo={0.9}
+          accessibilityRole="button"
+          accessibilityLabel={isFav ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}>
+          <Text style={[styles.favStar, isFav && styles.favStarOn]}>{isFav ? '★' : '☆'}</Text>
+        </PressableScale>
       </View>
 
       <View style={styles.formRow}>
@@ -118,6 +129,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   headerText: { flex: 1, gap: 4 },
+  favBtn: { padding: spacing.sm },
+  favStar: { fontSize: 28, color: colors.textMuted },
+  favStarOn: { color: colors.lime },
   title: {
     fontFamily: fonts.brand,
     fontSize: 40,
