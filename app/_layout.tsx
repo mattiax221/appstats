@@ -11,6 +11,7 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
@@ -23,7 +24,12 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-SplashScreen.preventAutoHideAsync();
+// Splash is native-only; calling preventAutoHide on web leaves a blank frame.
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync().catch(() => {
+    /* ignore if already prevented */
+  });
+}
 
 export default function RootLayout() {
   const [bebasLoaded, bebasError] = useBebas({ BebasNeue_400Regular });
@@ -41,13 +47,21 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (loaded && Platform.OS !== 'web') {
+      SplashScreen.hideAsync().catch(() => {
+        /* ignore */
+      });
     }
   }, [loaded]);
 
+  // Avoid SSR/web `return null` (empty #root + dark body = black screen).
   if (!loaded) {
-    return null;
+    return (
+      <View style={styles.boot}>
+        <Text style={styles.bootBrand}>AppStats</Text>
+        <Text style={styles.bootHint}>Caricamento…</Text>
+      </View>
+    );
   }
 
   return (
@@ -73,3 +87,24 @@ export default function RootLayout() {
     </QueryProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bootBrand: {
+    color: colors.text,
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  bootHint: {
+    marginTop: 8,
+    color: colors.textMuted,
+    fontSize: 14,
+  },
+});

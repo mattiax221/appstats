@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts, spacing } from './theme';
+
+const useNativeDriver = Platform.OS !== 'web';
 
 type BrandMarkProps = {
   /** Hero-scale on Home; compact elsewhere. */
@@ -18,18 +20,18 @@ export function BrandMark({ size = 'hero' }: BrandMarkProps) {
       Animated.timing(opacity, {
         toValue: 1,
         duration: 520,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.timing(translateY, {
         toValue: 0,
         duration: 520,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.spring(lineScale, {
         toValue: 1,
         friction: 7,
         tension: 60,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start();
   }, [lineScale, opacity, translateY]);

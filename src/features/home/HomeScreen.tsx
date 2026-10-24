@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BrandMark } from '@/src/ui/BrandMark';
 import { Screen } from '@/src/ui/Screen';
@@ -14,7 +14,7 @@ export function HomeScreen() {
       toValue: 1,
       duration: 700,
       delay: 180,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   }, [fade]);
 
