@@ -41,8 +41,10 @@ export const spacing = {
   hero: 56,
 } as const;
 
+/** Soft product radii (chips/rows) — not capsule pills everywhere. */
 export const radii = {
   none: 0,
-  sm: 2,
-  md: 4,
+  sm: 6,
+  md: 8,
+  lg: 12,
 } as const;

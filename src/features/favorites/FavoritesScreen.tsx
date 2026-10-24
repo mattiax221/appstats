@@ -1,9 +1,11 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { mockFavoriteTeams } from '@/src/data/mock/fixtures';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { StaggerItem } from '@/src/ui/StaggerItem';
+import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function FavoritesScreen() {
@@ -19,22 +21,20 @@ export function FavoritesScreen() {
       {mockFavoriteTeams.map((team, index) => (
         <StaggerItem key={team.id} index={index}>
           <Link href={`/team/${team.id}`} asChild>
-            <Pressable style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-              <View style={styles.mark}>
-                <Text style={styles.markText}>{team.name.slice(0, 3).toUpperCase()}</Text>
-              </View>
+            <PressableScale style={styles.row} scaleTo={0.98}>
+              <TeamCrest uri={team.crestUrl} name={team.name} size={44} />
               <View style={styles.meta}>
                 <Text style={styles.name}>{team.name}</Text>
                 <Text style={styles.comp}>{team.competition}</Text>
               </View>
               <Text style={styles.chev}>›</Text>
-            </Pressable>
+            </PressableScale>
           </Link>
         </StaggerItem>
       ))}
 
       <Text style={styles.hint}>
-        Persistenza locale in P3. Questa lista è mock di design.
+        Persistenza locale in P3. Crest da CDN demo.
       </Text>
     </Screen>
   );
@@ -69,23 +69,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
     gap: spacing.md,
-  },
-  pressed: { opacity: 0.7 },
-  mark: {
-    width: 44,
-    height: 44,
-    backgroundColor: colors.pitch,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markText: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 11,
-    letterSpacing: 0.8,
-    color: colors.lime,
   },
   meta: { flex: 1, gap: 2 },
   name: {

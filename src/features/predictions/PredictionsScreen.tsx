@@ -1,15 +1,26 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { mockMarkets } from '@/src/data/mock/fixtures';
+import { CompetitionBadge, TimeChip } from '@/src/ui/Chip';
 import { FadeIn } from '@/src/ui/FadeIn';
 import { OddsBar } from '@/src/ui/OddsBar';
+import { PressableScale } from '@/src/ui/PressableScale';
+import { PrimaryButton } from '@/src/ui/PrimaryButton';
 import { Screen } from '@/src/ui/Screen';
+import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
-/** UI stub with mock consensus; P4 wires The Odds API. */
+/** UI stub with mock consensus + crests; P4 wires The Odds API. */
 export function PredictionsScreen() {
   const featured = mockMarkets[0];
   const rest = mockMarkets.slice(1);
+
+  const topKey = (c: { home: number; draw: number; away: number }) => {
+    if (c.home >= c.draw && c.home >= c.away) return '1' as const;
+    if (c.away > c.draw) return '2' as const;
+    return 'X' as const;
+  };
 
   return (
     <Screen>
@@ -20,12 +31,26 @@ export function PredictionsScreen() {
         modello ML.
       </Text>
 
-      <FadeIn delay={120} style={styles.featured}>
-        <Text style={styles.featuredComp}>{featured.competition}</Text>
-        <Text style={styles.featuredMatch}>
-          {featured.home} – {featured.away}
-        </Text>
-        <Text style={styles.featuredKick}>{featured.kickoffLabel}</Text>
+      <FadeIn delay={100} style={styles.featured}>
+        <View style={styles.featuredTop}>
+          <CompetitionBadge
+            name={featured.competition}
+            crestUrl={featured.competitionCrestUrl}
+          />
+          <TimeChip label={featured.kickoffLabel} />
+        </View>
+
+        <View style={styles.teamsRow}>
+          <View style={styles.teamBlock}>
+            <TeamCrest uri={featured.homeCrest} name={featured.home} size={52} />
+            <Text style={styles.teamName}>{featured.home}</Text>
+          </View>
+          <Text style={styles.vs}>vs</Text>
+          <View style={styles.teamBlock}>
+            <TeamCrest uri={featured.awayCrest} name={featured.away} size={52} />
+            <Text style={styles.teamName}>{featured.away}</Text>
+          </View>
+        </View>
 
         <View style={styles.bars}>
           <OddsBar
@@ -33,64 +58,61 @@ export function PredictionsScreen() {
             value={featured.consensus.home}
             odds={featured.odds.home}
             delay={200}
-            emphasize={
-              featured.consensus.home >= featured.consensus.draw &&
-              featured.consensus.home >= featured.consensus.away
-            }
+            emphasize={topKey(featured.consensus) === '1'}
           />
           <OddsBar
             label="X"
             value={featured.consensus.draw}
             odds={featured.odds.draw}
             delay={280}
-            emphasize={
-              featured.consensus.draw > featured.consensus.home &&
-              featured.consensus.draw >= featured.consensus.away
-            }
+            emphasize={topKey(featured.consensus) === 'X'}
           />
           <OddsBar
             label="2"
             value={featured.consensus.away}
             odds={featured.odds.away}
             delay={360}
-            emphasize={
-              featured.consensus.away > featured.consensus.home &&
-              featured.consensus.away > featured.consensus.draw
-            }
+            emphasize={topKey(featured.consensus) === '2'}
           />
         </View>
+
+        <PrimaryButton
+          label="Apri dettaglio partita"
+          onPress={() => router.push(`/match/${featured.matchId}`)}
+          style={styles.cta}
+        />
       </FadeIn>
 
       <Text style={styles.listTitle}>Altre in focus</Text>
       {rest.map((m) => {
-        const top =
-          m.consensus.home >= m.consensus.draw && m.consensus.home >= m.consensus.away
-            ? '1'
-            : m.consensus.away > m.consensus.draw
-              ? '2'
-              : 'X';
+        const tip = topKey(m.consensus);
         const pct = Math.round(
-          (top === '1' ? m.consensus.home : top === '2' ? m.consensus.away : m.consensus.draw) *
+          (tip === '1' ? m.consensus.home : tip === '2' ? m.consensus.away : m.consensus.draw) *
             100,
         );
         return (
-          <View key={m.matchId} style={styles.listRow}>
+          <PressableScale
+            key={m.matchId}
+            onPress={() => router.push(`/match/${m.matchId}`)}
+            style={styles.listRow}
+            scaleTo={0.98}>
+            <TeamCrest uri={m.homeCrest} name={m.home} size={32} />
             <View style={styles.listMain}>
               <Text style={styles.listMatch}>
                 {m.home} – {m.away}
               </Text>
               <Text style={styles.listMeta}>{m.kickoffLabel}</Text>
             </View>
+            <TeamCrest uri={m.awayCrest} name={m.away} size={32} />
             <Text style={styles.listTip}>
-              {top} · {pct}%
+              {tip} · {pct}%
             </Text>
-          </View>
+          </PressableScale>
         );
       })}
 
       <Text style={styles.disclaimer}>
-        Non è un consiglio di scommessa. Le barre riflettono il mercato (mock fino
-        a P4).
+        Non è un consiglio di scommessa. Barre e stemmi sono mock fino a P4.
       </Text>
     </Screen>
   );
@@ -122,34 +144,45 @@ const styles = StyleSheet.create({
   },
   featured: {
     marginTop: spacing.xl,
-    paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
+    padding: spacing.md,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    gap: spacing.md,
   },
-  featuredComp: {
+  featuredTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  teamsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  teamBlock: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  teamName: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  vs: {
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
     color: colors.textMuted,
-    marginBottom: spacing.xs,
+    letterSpacing: 1,
   },
-  featuredMatch: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 22,
-    lineHeight: 28,
-    color: colors.text,
-  },
-  featuredKick: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.textSoft,
-  },
-  bars: {
-    marginTop: spacing.sm,
-  },
+  bars: { marginTop: spacing.xs },
+  cta: { marginTop: spacing.sm },
   listTitle: {
     marginTop: spacing.xl,
     marginBottom: spacing.sm,
@@ -162,15 +195,19 @@ const styles = StyleSheet.create({
   listRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
-    gap: spacing.md,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.nightLift,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
   },
-  listMain: { flex: 1, gap: 2 },
+  listMain: { flex: 1, gap: 2, minWidth: 0 },
   listMatch: {
     fontFamily: fonts.bodySemi,
-    fontSize: 15,
+    fontSize: 14,
     color: colors.text,
   },
   listMeta: {
@@ -180,11 +217,12 @@ const styles = StyleSheet.create({
   },
   listTip: {
     fontFamily: fonts.bodyBold,
-    fontSize: 14,
+    fontSize: 13,
     color: colors.lime,
+    marginLeft: spacing.xs,
   },
   disclaimer: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,

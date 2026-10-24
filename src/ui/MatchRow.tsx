@@ -1,129 +1,126 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import type { Match } from '@/src/domain';
+import type { UiMatch } from '@/src/data/mock/fixtures';
 
+import { CompetitionBadge, TimeChip } from './Chip';
+import { LiveBadge } from './LiveBadge';
+import { PressableScale } from './PressableScale';
+import { ScorePill } from './ScorePill';
+import { TeamCrest } from './TeamCrest';
 import { colors, fonts, spacing } from './theme';
 
 type MatchRowProps = {
-  match: Match;
+  match: UiMatch;
 };
 
-function statusLabel(match: Match): { text: string; live?: boolean } {
-  if (match.status === 'live') return { text: 'LIVE', live: true };
-  if (match.status === 'finished') {
-    return {
-      text: `${match.score?.home ?? 0} – ${match.score?.away ?? 0}`,
-    };
-  }
-  const d = new Date(match.utcDate);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return { text: `${hh}:${mm}` };
+function kickoffTime(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 export function MatchRow({ match }: MatchRowProps) {
-  const status = statusLabel(match);
-  const home = match.home.shortName ?? match.home.name;
-  const away = match.away.shortName ?? match.away.name;
+  const live = match.status === 'live';
 
   return (
     <Link href={`/match/${match.id}`} asChild>
-      <Pressable
-        style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      <PressableScale
         accessibilityRole="button"
-        accessibilityLabel={`${match.home.name} contro ${match.away.name}`}>
-        <View style={styles.compCol}>
-          <Text style={styles.comp}>{match.competitionName ?? match.competitionId}</Text>
-          {match.matchday != null ? (
-            <Text style={styles.md}>G{match.matchday}</Text>
-          ) : null}
+        accessibilityLabel={`${match.home.name} contro ${match.away.name}`}
+        style={styles.row}
+        scaleTo={0.985}>
+        <View style={styles.top}>
+          <CompetitionBadge
+            name={match.competitionName ?? match.competitionId}
+            crestUrl={match.competitionCrestUrl}
+            matchday={match.matchday}
+          />
+          {live ? (
+            <LiveBadge minute={match.liveMinute} />
+          ) : (
+            <TimeChip label={kickoffTime(match.utcDate)} />
+          )}
         </View>
 
-        <View style={styles.teams}>
-          <Text style={styles.team} numberOfLines={1}>
-            {home}
-          </Text>
-          <Text style={styles.vs}>–</Text>
-          <Text style={styles.team} numberOfLines={1}>
-            {away}
-          </Text>
-        </View>
-
-        <View style={styles.statusCol}>
-          {match.status === 'live' && match.score ? (
-            <Text style={styles.score}>
-              {match.score.home}–{match.score.away}
+        <View style={styles.body}>
+          <View style={styles.side}>
+            <TeamCrest uri={match.home.crestUrl} name={match.home.name} size={40} />
+            <Text style={styles.teamName} numberOfLines={1}>
+              {match.home.name}
             </Text>
-          ) : null}
-          <Text style={[styles.status, status.live && styles.statusLive]}>{status.text}</Text>
+          </View>
+
+          <View style={styles.center}>
+            {live || match.status === 'finished' ? (
+              <ScorePill
+                home={match.score?.home}
+                away={match.score?.away}
+                live={live}
+              />
+            ) : (
+              <Text style={styles.vs}>vs</Text>
+            )}
+          </View>
+
+          <View style={[styles.side, styles.sideAway]}>
+            <TeamCrest uri={match.away.crestUrl} name={match.away.name} size={40} />
+            <Text style={[styles.teamName, styles.teamAway]} numberOfLines={1}>
+              {match.away.name}
+            </Text>
+          </View>
         </View>
-      </Pressable>
+      </PressableScale>
     </Link>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    gap: spacing.md,
+  },
+  top: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
+    justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  pressed: { opacity: 0.7 },
-  compCol: {
-    width: 72,
-    gap: 2,
-  },
-  comp: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 11,
-    letterSpacing: 0.4,
-    color: colors.textMuted,
-  },
-  md: {
-    fontFamily: fonts.body,
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  teams: {
-    flex: 1,
+  body: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  side: {
+    flex: 1,
     alignItems: 'center',
     gap: spacing.sm,
     minWidth: 0,
   },
-  team: {
+  sideAway: {},
+  teamName: {
     fontFamily: fonts.bodySemi,
-    fontSize: 16,
+    fontSize: 13,
     color: colors.text,
-    flexShrink: 1,
+    textAlign: 'center',
+    width: '100%',
+  },
+  teamAway: {},
+  center: {
+    width: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   vs: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  statusCol: {
-    alignItems: 'flex-end',
-    minWidth: 52,
-    gap: 2,
-  },
-  score: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 15,
-    color: colors.text,
-  },
-  status: {
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
-    letterSpacing: 0.6,
-    color: colors.textSoft,
-  },
-  statusLive: {
-    color: colors.lime,
-    letterSpacing: 1.2,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
   },
 });

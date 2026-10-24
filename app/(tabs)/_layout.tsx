@@ -15,9 +15,12 @@ export default function TabLayout() {
           backgroundColor: colors.night,
           borderTopColor: colors.hairline,
           borderTopWidth: StyleSheet.hairlineWidth,
-          height: 58,
-          paddingTop: 6,
-          paddingBottom: 6,
+          height: 62,
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+        tabBarItemStyle: {
+          minHeight: 44,
         },
         tabBarLabelStyle: {
           fontFamily: fonts.bodyMedium,

@@ -1,100 +1,108 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { mockFixtures } from '@/src/data/mock/fixtures';
+import { CompetitionBadge } from '@/src/ui/Chip';
+import { LiveBadge } from '@/src/ui/LiveBadge';
+import { PrimaryButton } from '@/src/ui/PrimaryButton';
 import { Screen } from '@/src/ui/Screen';
+import { ScorePill } from '@/src/ui/ScorePill';
+import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const match = mockFixtures.find((m) => m.id === id);
+  const live = match?.status === 'live';
 
   const home = match?.home.name ?? 'Casa';
   const away = match?.away.name ?? 'Ospite';
-  const comp = match?.competitionName ?? 'Competizione';
-  const live = match?.status === 'live';
 
   return (
     <Screen>
-      <Text style={styles.kicker}>Partita</Text>
-      <Text style={styles.comp}>{comp}</Text>
-      <Text style={styles.title}>
-        {home}
-        {'\n'}
-        <Text style={styles.vs}>vs</Text>
-        {'\n'}
-        {away}
-      </Text>
+      <View style={styles.top}>
+        <CompetitionBadge
+          name={match?.competitionName ?? 'Competizione'}
+          crestUrl={match?.competitionCrestUrl}
+          matchday={match?.matchday}
+        />
+        {live ? <LiveBadge minute={match?.liveMinute} /> : null}
+      </View>
 
-      {live && match?.score ? (
-        <View style={styles.scoreBlock}>
-          <Text style={styles.live}>LIVE</Text>
-          <Text style={styles.score}>
-            {match.score.home} – {match.score.away}
-          </Text>
+      <View style={styles.teams}>
+        <View style={styles.team}>
+          <TeamCrest uri={match?.home.crestUrl} name={home} size={64} />
+          <Text style={styles.teamName}>{home}</Text>
         </View>
-      ) : (
-        <Text style={styles.meta}>id · {id ?? '—'}</Text>
-      )}
+        <View style={styles.mid}>
+          {match?.score ? (
+            <ScorePill home={match.score.home} away={match.score.away} live={live} />
+          ) : (
+            <Text style={styles.vs}>vs</Text>
+          )}
+        </View>
+        <View style={styles.team}>
+          <TeamCrest uri={match?.away.crestUrl} name={away} size={64} />
+          <Text style={styles.teamName}>{away}</Text>
+        </View>
+      </View>
+
+      <Text style={styles.meta}>id · {id ?? '—'}</Text>
 
       <View style={styles.divider} />
       <Text style={styles.body}>
         Eventi, stats e H2H arriveranno con football-data.org e API-Football.
-        Da qui si aprirà anche la lettura quote.
       </Text>
+
+      <PrimaryButton
+        label="Vai alle previsioni"
+        variant="ghost"
+        onPress={() => router.push('/previsioni')}
+        style={styles.cta}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    color: colors.lime,
-    marginBottom: spacing.sm,
+  top: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
-  comp: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.textMuted,
-    marginBottom: spacing.sm,
+  teams: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
   },
-  title: {
-    fontFamily: fonts.brand,
-    fontSize: 48,
-    lineHeight: 52,
+  team: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  teamName: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
     color: colors.text,
-    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  mid: {
+    width: 80,
+    alignItems: 'center',
   },
   vs: {
     fontFamily: fonts.bodyMedium,
-    fontSize: 18,
+    fontSize: 14,
     color: colors.textMuted,
-    letterSpacing: 2,
-  },
-  scoreBlock: {
-    marginTop: spacing.lg,
-    gap: spacing.xs,
-  },
-  live: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 12,
-    letterSpacing: 2,
-    color: colors.lime,
-  },
-  score: {
-    fontFamily: fonts.brand,
-    fontSize: 56,
-    lineHeight: 58,
-    color: colors.text,
+    letterSpacing: 1,
   },
   meta: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
     fontFamily: fonts.bodyMedium,
-    fontSize: 13,
-    color: colors.lime,
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: 'center',
   },
   divider: {
     marginTop: spacing.xl,
@@ -107,5 +115,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: colors.textMuted,
+  },
+  cta: {
+    marginTop: spacing.lg,
+    alignSelf: 'stretch',
   },
 });

@@ -89,13 +89,15 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   track: {
-    height: 6,
+    height: 8,
     backgroundColor: colors.limeDim,
     overflow: 'hidden',
+    borderRadius: 4,
   },
   fill: {
     height: '100%',
     backgroundColor: colors.textSoft,
+    borderRadius: 4,
   },
   fillHot: {
     backgroundColor: colors.lime,
