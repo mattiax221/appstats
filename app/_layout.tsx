@@ -100,6 +100,10 @@ export default function RootLayout() {
             name="storico"
             options={{ title: 'Storico', headerBackTitle: 'Indietro' }}
           />
+          <Stack.Screen
+            name="squadre"
+            options={{ title: 'Squadre', headerBackTitle: 'Indietro' }}
+          />
         </Stack>
       </WebPhoneFrame>
     </QueryProvider>

@@ -1,73 +1,121 @@
-import { useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Link, useLocalSearchParams } from 'expo-router';
+import { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { hasFootballDataKey } from '@/src/config/env';
-import { matchesRepository } from '@/src/data/repositories';
-import { CompetitionBadge } from '@/src/ui/Chip';
-import { LiveBadge } from '@/src/ui/LiveBadge';
+import {
+  getH2H,
+  getMatch,
+  getTeam,
+  getTeamStats,
+  parseHistoryMatchParam,
+  toHistoryRow,
+} from '@/src/data/history/catalog';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
-import { ScorePill } from '@/src/ui/ScorePill';
+import { SectionHeader } from '@/src/ui/SectionHeader';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const matchId = id ?? '';
-  const hasKey = hasFootballDataKey();
+  const matchId = parseHistoryMatchParam(typeof id === 'string' ? id : undefined);
+  const match = matchId != null ? getMatch(matchId) : null;
+  const row = match ? toHistoryRow(match) : null;
+  const home = match ? getTeam(match.homeTeamId) : null;
+  const away = match ? getTeam(match.awayTeamId) : null;
+  const h2h = useMemo(
+    () =>
+      match ? getH2H(match.homeTeamId, match.awayTeamId, 10) : null,
+    [match],
+  );
+  const homeForm = match ? getTeamStats(match.homeTeamId, 5).form : [];
+  const awayForm = match ? getTeamStats(match.awayTeamId, 5).form : [];
 
-  const { data: match, isLoading } = useQuery({
-    queryKey: ['match', matchId],
-    queryFn: () => matchesRepository.getById(matchId),
-    enabled: hasKey && Boolean(matchId),
-    staleTime: matchesRepository.staleTime,
-    refetchOnWindowFocus: false,
-  });
-
-  const live = match?.status === 'live';
-  const home = match?.home.name ?? 'Casa';
-  const away = match?.away.name ?? 'Ospite';
+  if (!match || !row || !home || !away || !h2h) {
+    return (
+      <Screen>
+        <Text style={styles.missing}>Partita non nello storico locale</Text>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
-      {isLoading ? (
-        <ActivityIndicator color={colors.lime} style={{ marginTop: spacing.xl }} />
-      ) : null}
+      <Text style={styles.comp}>
+        {row.competitionName} · {row.season}
+      </Text>
+      <Text style={styles.date}>{row.matchDate}</Text>
 
-      {!isLoading && !match ? (
-        <Text style={styles.missing}>Partita non disponibile</Text>
-      ) : null}
+      <View style={styles.teams}>
+        <Link href={`/team/${home.id}`} asChild>
+          <PressableScale style={styles.team} scaleTo={0.97}>
+            <TeamCrest uri={home.crestUrl} name={home.name} size={64} delay={80} />
+            <Text style={styles.teamName}>{home.name}</Text>
+            <FormDots form={homeForm} />
+          </PressableScale>
+        </Link>
+        <View style={styles.mid}>
+          <Text style={styles.score}>
+            {row.homeGoals}:{row.awayGoals}
+          </Text>
+          {row.htHomeGoals != null && row.htAwayGoals != null ? (
+            <Text style={styles.ht}>
+              HT {row.htHomeGoals}:{row.htAwayGoals}
+            </Text>
+          ) : null}
+        </View>
+        <Link href={`/team/${away.id}`} asChild>
+          <PressableScale style={styles.team} scaleTo={0.97}>
+            <TeamCrest uri={away.crestUrl} name={away.name} size={64} delay={140} />
+            <Text style={styles.teamName}>{away.name}</Text>
+            <FormDots form={awayForm} />
+          </PressableScale>
+        </Link>
+      </View>
 
-      {match ? (
-        <>
-          <View style={styles.top}>
-            <CompetitionBadge
-              name={match.competitionName ?? match.competitionId}
-              matchday={match.matchday}
-            />
-            {live ? <LiveBadge /> : null}
-          </View>
+      <SectionHeader title="H2H" />
+      <View style={styles.h2hBar}>
+        <Text style={styles.h2hNum}>{h2h.teamAWins}</Text>
+        <Text style={styles.h2hLabel}>V {home.name}</Text>
+        <Text style={styles.h2hNum}>{h2h.draws}</Text>
+        <Text style={styles.h2hLabel}>N</Text>
+        <Text style={styles.h2hNum}>{h2h.teamBWins}</Text>
+        <Text style={styles.h2hLabel}>V {away.name}</Text>
+      </View>
+      <Text style={styles.h2hMeta}>{h2h.played} confronti nello storico</Text>
 
-          <View style={styles.teams}>
-            <View style={styles.team}>
-              <TeamCrest uri={match.home.crestUrl} name={home} size={64} delay={80} />
-              <Text style={styles.teamName}>{home}</Text>
-            </View>
-            <View style={styles.mid}>
-              {match.score ? (
-                <ScorePill home={match.score.home} away={match.score.away} live={live} />
-              ) : (
-                <Text style={styles.vs}>vs</Text>
-              )}
-            </View>
-            <View style={styles.team}>
-              <TeamCrest uri={match.away.crestUrl} name={away} size={64} delay={140} />
-              <Text style={styles.teamName}>{away}</Text>
-            </View>
-          </View>
-        </>
-      ) : null}
+      {h2h.matches.map((m) => {
+        const r = toHistoryRow(m);
+        return (
+          <Link key={m.id} href={`/match/h-${m.id}`} asChild>
+            <PressableScale style={styles.h2hRow} scaleTo={0.98}>
+              <Text style={styles.h2hDate}>{r.matchDate}</Text>
+              <Text style={styles.h2hScore}>
+                {r.homeName} {r.homeGoals}:{r.awayGoals} {r.awayName}
+              </Text>
+            </PressableScale>
+          </Link>
+        );
+      })}
     </Screen>
+  );
+}
+
+function FormDots({ form }: { form: Array<'V' | 'N' | 'P'> }) {
+  return (
+    <View style={styles.formRow}>
+      {form.map((r, i) => (
+        <View
+          key={`${r}-${i}`}
+          style={[
+            styles.dot,
+            r === 'V' && styles.dotWin,
+            r === 'N' && styles.dotDraw,
+            r === 'P' && styles.dotLoss,
+          ]}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -78,36 +126,106 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textMuted,
   },
-  top: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  comp: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.lime,
+  },
+  date: {
+    marginTop: spacing.xs,
     marginBottom: spacing.xl,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.textMuted,
   },
   teams: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   team: {
     flex: 1,
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   teamName: {
     fontFamily: fonts.bodyBold,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.text,
     textAlign: 'center',
   },
   mid: {
-    width: 80,
+    width: 72,
     alignItems: 'center',
+    paddingTop: 18,
   },
-  vs: {
+  score: {
+    fontFamily: fonts.brand,
+    fontSize: 40,
+    lineHeight: 42,
+    color: colors.text,
+  },
+  ht: {
+    marginTop: 4,
     fontFamily: fonts.bodyMedium,
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textMuted,
-    letterSpacing: 1,
+  },
+  formRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.charcoal,
+  },
+  dotWin: { backgroundColor: colors.lime },
+  dotDraw: { backgroundColor: colors.textMuted },
+  dotLoss: { backgroundColor: colors.danger },
+  h2hBar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  h2hNum: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 22,
+    color: colors.lime,
+  },
+  h2hLabel: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginRight: spacing.sm,
+  },
+  h2hMeta: {
+    marginBottom: spacing.md,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textSoft,
+  },
+  h2hRow: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
+    gap: 2,
+  },
+  h2hDate: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  h2hScore: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.text,
   },
 });

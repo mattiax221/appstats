@@ -35,8 +35,8 @@ export const roadmapPhases: RoadmapPhase[] = [
     id: 'p2',
     phase: 'P2',
     title: 'Statistiche profonde',
-    summary: 'Schede squadra, forma, H2H e stats match.',
-    status: 'next',
+    summary: 'Schede squadra, forma, H2H e stats match dallo storico locale.',
+    status: 'done',
   },
   {
     id: 'p3',
