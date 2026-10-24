@@ -7,7 +7,7 @@ Piano delle fasi, in italiano. Ogni fase lascia l’app usabile.
 | **P0** | Base app | Navigazione, tema matchday, schermate principali | **Fatto** |
 | **P1** | Partite e classifiche | Calendario, risultati e tabelle (football-data.org) | **Fatto** |
 | **P1b** | Database storico | Seed bundlato (~3800 SA+PL); Storico subito | **Fatto** |
-| **P2** | Statistiche profonde | Schede squadra, forma, H2H, stats match | **Prossimo** |
+| **P2** | Statistiche profonde | Schede squadra, forma, H2H, stats match | **Fatto** |
 | **P3** | Preferiti | Segui squadre/leghe; Home più personale | In piano |
 | **P4** | Previsioni dallo storico | 1X2 stima da form/H2H; quote bookmaker solo con chiave | In piano |
 | **P5** | Rifinitura | Live best-effort, player stats, qualità complessiva | In piano |

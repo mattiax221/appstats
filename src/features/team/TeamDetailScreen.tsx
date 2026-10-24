@@ -1,35 +1,53 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { mockFavoriteTeams, mockFixtures } from '@/src/data/mock/fixtures';
-import { MatchRow } from '@/src/ui/MatchRow';
+import {
+  getTeam,
+  getTeamStats,
+  listTeamMatches,
+  parseTeamParam,
+} from '@/src/data/history/catalog';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { SectionHeader } from '@/src/ui/SectionHeader';
+import { StaggerItem } from '@/src/ui/StaggerItem';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const team = mockFavoriteTeams.find((t) => t.id === id);
-  const fromFixture =
-    mockFixtures.find((m) => m.home.id === id)?.home ??
-    mockFixtures.find((m) => m.away.id === id)?.away;
-  const name = team?.name ?? fromFixture?.name ?? (typeof id === 'string' ? id : 'Squadra');
-  const crest = team?.crestUrl ?? fromFixture?.crestUrl;
-  const related = mockFixtures.filter((m) => m.home.id === id || m.away.id === id).slice(0, 2);
+  const teamId = parseTeamParam(typeof id === 'string' ? id : undefined);
+  const team = teamId != null ? getTeam(teamId) : null;
+  const stats = useMemo(
+    () => (teamId != null ? getTeamStats(teamId, 10) : null),
+    [teamId],
+  );
+  const recent = useMemo(
+    () => (teamId != null ? listTeamMatches(teamId, 12) : []),
+    [teamId],
+  );
+
+  if (!team || !stats) {
+    return (
+      <Screen>
+        <Text style={styles.missing}>Squadra non trovata nello storico</Text>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
       <View style={styles.header}>
-        <TeamCrest uri={crest} name={name} size={72} delay={60} />
+        <TeamCrest uri={team.crestUrl} name={team.name} size={72} delay={60} />
         <View style={styles.headerText}>
-          <Text style={styles.title}>{name}</Text>
-          {team ? <Text style={styles.comp}>{team.competition}</Text> : null}
+          <Text style={styles.title}>{team.name}</Text>
+          <Text style={styles.comp}>Ultime {stats.played} partite</Text>
         </View>
       </View>
 
       <View style={styles.formRow}>
-        {['V', 'V', 'N', 'P', 'V'].map((r, i) => (
+        {stats.form.map((r, i) => (
           <View
             key={`${r}-${i}`}
             style={[
@@ -43,24 +61,61 @@ export function TeamDetailScreen() {
         ))}
       </View>
 
-      {related.length > 0 ? (
-        <>
-          <SectionHeader title="Partite" />
-          {related.map((m, i) => (
-            <MatchRow key={m.id} match={m} enterDelay={100 + i * 40} />
-          ))}
-        </>
-      ) : null}
+      <View style={styles.statGrid}>
+        <Stat label="V" value={String(stats.wins)} />
+        <Stat label="N" value={String(stats.draws)} />
+        <Stat label="P" value={String(stats.losses)} />
+        <Stat label="GF" value={String(stats.goalsFor)} />
+        <Stat label="GS" value={String(stats.goalsAgainst)} />
+        <Stat label="Diff" value={String(stats.goalsFor - stats.goalsAgainst)} />
+      </View>
+
+      <SectionHeader title="Recenti" />
+      {recent.map((m, index) => (
+        <StaggerItem key={m.id} index={Math.min(index, 10)}>
+          <Link href={`/match/h-${m.id}`} asChild>
+            <PressableScale style={styles.row} scaleTo={0.98}>
+              <Text style={styles.date}>{m.matchDate}</Text>
+              <Text style={styles.compCode}>{m.competitionCode}</Text>
+              <View style={styles.teams}>
+                <TeamCrest uri={m.homeCrest} name={m.homeName} size={26} delay={30} />
+                <Text style={styles.score}>
+                  {m.homeGoals}:{m.awayGoals}
+                </Text>
+                <TeamCrest uri={m.awayCrest} name={m.awayName} size={26} delay={50} />
+              </View>
+              <Text style={styles.names} numberOfLines={1}>
+                {m.homeName} – {m.awayName}
+              </Text>
+            </PressableScale>
+          </Link>
+        </StaggerItem>
+      ))}
     </Screen>
   );
 }
 
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={styles.statVal}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  missing: {
+    marginTop: spacing.xl,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.textMuted,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.lg,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   headerText: { flex: 1, gap: 4 },
   title: {
@@ -77,7 +132,9 @@ const styles = StyleSheet.create({
   },
   formRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   formCell: {
     width: 36,
@@ -94,5 +151,70 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     fontSize: 13,
     color: colors.text,
+  },
+  statGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  stat: {
+    width: '30%',
+    flexGrow: 1,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.nightLift,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+  },
+  statVal: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 20,
+    color: colors.lime,
+  },
+  statLabel: {
+    marginTop: 2,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    letterSpacing: 1,
+    color: colors.textMuted,
+  },
+  row: {
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    gap: 4,
+  },
+  date: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  compCode: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 11,
+    letterSpacing: 1,
+    color: colors.lime,
+  },
+  teams: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  score: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 18,
+    color: colors.text,
+    minWidth: 44,
+    textAlign: 'center',
+  },
+  names: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textSoft,
   },
 });

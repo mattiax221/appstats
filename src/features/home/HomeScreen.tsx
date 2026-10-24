@@ -71,6 +71,13 @@ export function HomeScreen() {
           <Text style={styles.classificaLabel}>Storico</Text>
           <Text style={styles.chev}>›</Text>
         </PressableScale>
+        <PressableScale
+          onPress={() => router.push('/squadre')}
+          style={styles.classifica}
+          scaleTo={0.98}>
+          <Text style={styles.classificaLabel}>Squadre · stats</Text>
+          <Text style={styles.chev}>›</Text>
+        </PressableScale>
       </View>
 
       {!hasKey ? <ApiKeyEmptyState /> : null}
