@@ -2,7 +2,8 @@
 
 App Android + iOS di **statistiche calcistiche**, analisi e **previsioni 1X2** derivate dalle quote bookmaker. Solo API gratuite in v1.
 
-**P1:** Home e Classifica da [football-data.org](https://www.football-data.org/) (Serie A + Premier).
+**P1:** Home e Classifica da [football-data.org](https://www.football-data.org/) (Serie A + Premier).  
+**P1b:** Database storico SQLite (solo partite finite) — CSV co.uk + API opzionali.
 
 ## Requisiti
 
@@ -27,6 +28,18 @@ Poi: QR con Expo Go, oppure `a` / `i` / `w`.
 | --- | --- |
 | `npx expo start` | Dev server |
 | `npx tsc --noEmit` | Typecheck |
+| `npm run history:ingest` | Riempie `data/history.sqlite` (Windows: `node scripts\history\ingest.mjs`) |
+| `npm run history:pack` | Copia il DB in `assets/databases/` (gitignored) |
+
+### Storico (Windows)
+
+```bat
+node scripts\history\ingest.mjs
+node scripts\history\pack-for-app.mjs
+npx expo start
+```
+
+In app: **Storico** (da Home o Impostazioni). Non committare il DB pieno.
 
 ## Variabili d’ambiente
 

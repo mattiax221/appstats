@@ -25,6 +25,13 @@ export const roadmapPhases: RoadmapPhase[] = [
     status: 'done',
   },
   {
+    id: 'p1b',
+    phase: 'P1b',
+    title: 'Database storico',
+    summary: 'SQLite locale: risultati passati da CSV e API free (no live).',
+    status: 'done',
+  },
+  {
     id: 'p2',
     phase: 'P2',
     title: 'Statistiche profonde',
