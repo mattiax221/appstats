@@ -1,6 +1,5 @@
-import type { HistoryMatchRow } from './types';
-
-const WEB_KEY = 'appstats.history.v1';
+import { getBundledSeed } from './seedAsset';
+import type { HistoryMatchRow, HistorySeed, HistorySqlite } from './types';
 
 export type WebStore = {
   competitions: Array<{ id: number; code: string; name: string }>;
@@ -24,41 +23,89 @@ export type WebStore = {
   seq: { competition: number; team: number; match: number };
 };
 
-function emptyWebStore(): WebStore {
+function seedToStore(seed: HistorySeed): WebStore {
+  const competitions = seed.competitions.map((c) => ({
+    id: c.id,
+    code: c.code,
+    name: c.name,
+  }));
+  const teams = seed.teams.map((t) => ({
+    id: t.id,
+    name_key: t.name_key,
+    display_name: t.display_name,
+    crest_url: t.crest_url,
+  }));
+  const matches = seed.matches.map((row, i) => {
+    const [
+      competition_id,
+      season,
+      match_date,
+      home_team_id,
+      away_team_id,
+      home_goals,
+      away_goals,
+      ht_home_goals,
+      ht_away_goals,
+      source,
+      source_match_id,
+    ] = row;
+    return {
+      id: i + 1,
+      source,
+      source_match_id,
+      competition_id,
+      season,
+      match_date,
+      home_team_id,
+      away_team_id,
+      home_goals,
+      away_goals,
+      ht_home_goals,
+      ht_away_goals,
+      status: 'finished',
+    };
+  });
   return {
-    competitions: [],
-    teams: [],
-    matches: [],
-    meta: {},
-    seq: { competition: 1, team: 1, match: 1 },
+    competitions,
+    teams,
+    matches,
+    meta: {
+      seeded_from: seed.generatedAt,
+      seed_version: String(seed.version),
+    },
+    seq: {
+      competition: Math.max(0, ...competitions.map((c) => c.id)) + 1,
+      team: Math.max(0, ...teams.map((t) => t.id)) + 1,
+      match: matches.length + 1,
+    },
   };
 }
 
-export function getWebStore(): WebStore {
-  if (typeof localStorage === 'undefined') return emptyWebStore();
-  try {
-    const raw = localStorage.getItem(WEB_KEY);
-    if (!raw) return emptyWebStore();
-    return JSON.parse(raw) as WebStore;
-  } catch {
-    return emptyWebStore();
-  }
+/** In-memory store from bundled seed — no localStorage, available on first paint. */
+let memoryStore: WebStore | null = null;
+
+function store(): WebStore {
+  if (!memoryStore) memoryStore = seedToStore(getBundledSeed());
+  return memoryStore;
 }
 
-export function saveWebStore(store: WebStore) {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(WEB_KEY, JSON.stringify(store));
+export function getWebStore(): WebStore {
+  return store();
+}
+
+export function saveWebStore(next: WebStore) {
+  memoryStore = next;
 }
 
 export async function getHistoryMatchCount(): Promise<number> {
-  return getWebStore().matches.length;
+  return store().matches.length;
 }
 
 export async function listRecentHistoryMatches(limit = 40): Promise<HistoryMatchRow[]> {
-  const store = getWebStore();
-  const teamById = new Map(store.teams.map((t) => [t.id, t]));
-  const compById = new Map(store.competitions.map((c) => [c.id, c]));
-  return [...store.matches]
+  const s = store();
+  const teamById = new Map(s.teams.map((t) => [t.id, t]));
+  const compById = new Map(s.competitions.map((c) => [c.id, c]));
+  return [...s.matches]
     .sort((a, b) => b.match_date.localeCompare(a.match_date))
     .slice(0, limit)
     .map((m) => {
@@ -83,6 +130,10 @@ export async function listRecentHistoryMatches(limit = 40): Promise<HistoryMatch
     });
 }
 
-export async function getNativeHistoryDb(): Promise<import('./types').HistorySqlite> {
+export async function getNativeHistoryDb(): Promise<HistorySqlite> {
   throw new Error('SQLite nativo non disponibile sul web');
+}
+
+export async function ensureHistoryReady(): Promise<void> {
+  store();
 }

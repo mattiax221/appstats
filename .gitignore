@@ -52,7 +52,7 @@ Thumbs.db
 # testing / coverage
 coverage/
 
-# Historical DB (never commit filled databases)
+# Working ingest DB (never commit). Bundled seed JSON in assets/history/ IS committed.
 /data/
 /assets/databases/history.db
 /assets/databases/history.meta.json
