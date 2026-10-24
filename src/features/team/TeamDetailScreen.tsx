@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -9,12 +9,14 @@ import {
   listTeamMatches,
   parseTeamParam,
 } from '@/src/data/history/catalog';
+import { HistoryMatchCard } from '@/src/ui/HistoryMatchCard';
 import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { SectionHeader } from '@/src/ui/SectionHeader';
 import { StaggerItem } from '@/src/ui/StaggerItem';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
+import { layout } from '@/src/ui/tokens';
 
 export function TeamDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,7 +44,7 @@ export function TeamDetailScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <TeamCrest uri={team.crestUrl} name={team.name} size={72} delay={60} />
+        <TeamCrest uri={team.crestUrl} name={team.name} size={layout.crestXl} delay={40} />
         <View style={styles.headerText}>
           <Text style={styles.title}>{team.name}</Text>
           <Text style={styles.comp}>Ultime {stats.played} partite</Text>
@@ -83,23 +85,8 @@ export function TeamDetailScreen() {
 
       <SectionHeader title="Recenti" />
       {recent.map((m, index) => (
-        <StaggerItem key={m.id} index={Math.min(index, 10)}>
-          <Link href={`/match/h-${m.id}`} asChild>
-            <PressableScale style={styles.row} scaleTo={0.98}>
-              <Text style={styles.date}>{m.matchDate}</Text>
-              <Text style={styles.compCode}>{m.competitionCode}</Text>
-              <View style={styles.teams}>
-                <TeamCrest uri={m.homeCrest} name={m.homeName} size={26} delay={30} />
-                <Text style={styles.score}>
-                  {m.homeGoals}:{m.awayGoals}
-                </Text>
-                <TeamCrest uri={m.awayCrest} name={m.awayName} size={26} delay={50} />
-              </View>
-              <Text style={styles.names} numberOfLines={1}>
-                {m.homeName} – {m.awayName}
-              </Text>
-            </PressableScale>
-          </Link>
+        <StaggerItem key={m.id} index={index}>
+          <HistoryMatchCard match={m} enterDelay={40 + index * 30} />
         </StaggerItem>
       ))}
     </Screen>
@@ -125,25 +112,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
     marginBottom: spacing.lg,
   },
   headerText: { flex: 1, gap: 4 },
-  favBtn: { padding: spacing.sm },
-  favStar: { fontSize: 28, color: colors.textMuted },
-  favStarOn: { color: colors.lime },
   title: {
     fontFamily: fonts.brand,
-    fontSize: 40,
-    lineHeight: 42,
+    fontSize: 36,
+    lineHeight: 38,
     color: colors.text,
     letterSpacing: 1,
   },
   comp: {
     fontFamily: fonts.body,
-    fontSize: 15,
+    fontSize: 14,
     color: colors.textMuted,
   },
+  favBtn: { padding: spacing.sm },
+  favStar: { fontSize: 28, color: colors.textMuted },
+  favStarOn: { color: colors.lime },
   formRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -151,8 +138,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   formCell: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -163,21 +150,21 @@ const styles = StyleSheet.create({
   formLoss: { backgroundColor: 'rgba(255, 92, 77, 0.35)' },
   formText: {
     fontFamily: fonts.bodyBold,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.text,
   },
   statGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
   },
   stat: {
     width: '30%',
     flexGrow: 1,
     paddingVertical: spacing.md,
     backgroundColor: colors.nightLift,
-    borderRadius: 10,
+    borderRadius: layout.cardRadius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.hairline,
     alignItems: 'center',
@@ -193,42 +180,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1,
     color: colors.textMuted,
-  },
-  row: {
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.nightLift,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.hairline,
-    gap: 4,
-  },
-  date: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  compCode: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 11,
-    letterSpacing: 1,
-    color: colors.lime,
-  },
-  teams: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  score: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 18,
-    color: colors.text,
-    minWidth: 44,
-    textAlign: 'center',
-  },
-  names: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.textSoft,
   },
 });

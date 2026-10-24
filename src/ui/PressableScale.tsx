@@ -1,13 +1,15 @@
-import { type ReactNode, useRef } from 'react';
+import { type ReactNode } from 'react';
 import {
-  Animated,
   Pressable,
   type PressableProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-
-import { useNativeDriver } from './motion';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 type PressableScaleProps = Omit<PressableProps, 'style' | 'children'> & {
   children: ReactNode;
@@ -15,7 +17,7 @@ type PressableScaleProps = Omit<PressableProps, 'style' | 'children'> & {
   scaleTo?: number;
 };
 
-/** Soft scale-down on press — SofaScore-like hit feedback. */
+/** Soft scale-down on press — Reanimated spring. */
 export function PressableScale({
   children,
   style,
@@ -24,30 +26,23 @@ export function PressableScale({
   onPressOut,
   ...rest
 }: PressableScaleProps) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const scale = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <Pressable
       {...rest}
       onPressIn={(e) => {
-        Animated.spring(scale, {
-          toValue: scaleTo,
-          useNativeDriver,
-          speed: 40,
-          bounciness: 0,
-        }).start();
+        scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 });
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        Animated.spring(scale, {
-          toValue: 1,
-          useNativeDriver,
-          speed: 28,
-          bounciness: 6,
-        }).start();
+        scale.value = withSpring(1, { damping: 14, stiffness: 220 });
         onPressOut?.(e);
       }}>
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={[style, anim]}>{children}</Animated.View>
     </Pressable>
   );
 }

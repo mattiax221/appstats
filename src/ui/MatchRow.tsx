@@ -9,6 +9,7 @@ import { PressableScale } from './PressableScale';
 import { ScorePill } from './ScorePill';
 import { TeamCrest } from './TeamCrest';
 import { colors, fonts, spacing } from './theme';
+import { layout } from './tokens';
 
 type MatchRowProps = {
   match: Match & { liveMinute?: number; competitionCrestUrl?: string };
@@ -87,11 +88,11 @@ export function MatchRow({ match, enterDelay = 0 }: MatchRowProps) {
 
 const styles = StyleSheet.create({
   row: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    paddingVertical: layout.cardPad,
+    paddingHorizontal: layout.cardPad,
+    marginBottom: layout.rowGap,
     backgroundColor: colors.nightLift,
-    borderRadius: 12,
+    borderRadius: layout.cardRadius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.hairline,
     gap: spacing.md,

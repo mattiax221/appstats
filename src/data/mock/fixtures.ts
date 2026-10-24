@@ -167,6 +167,14 @@ export const mockFavoriteTeams = [
 
 export const leagueFilters = [
   { id: 'all', label: 'Tutte' },
-  { id: 'SA', label: 'Serie A', crestUrl: leagueCrestUrl(135) },
-  { id: 'PL', label: 'Premier', crestUrl: leagueCrestUrl(39) },
+  {
+    id: 'SA',
+    label: 'Serie A',
+    crestUrl: 'https://crests.football-data.org/SA.png',
+  },
+  {
+    id: 'PL',
+    label: 'Premier',
+    crestUrl: 'https://crests.football-data.org/PL.png',
+  },
 ] as const;

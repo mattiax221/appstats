@@ -1,20 +1,25 @@
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { durations } from './motion';
 import { colors, fonts, spacing } from './theme';
 
 type OddsBarProps = {
   label: string;
-  /** 0–1 normalized probability (stima or consensus). */
   value: number;
-  /** Decimal bookmaker odds — omit when no Odds API key / no market. */
   odds?: number;
   delay?: number;
   emphasize?: boolean;
 };
 
-/** Probability bar — width fills on enter (motion #3). */
+/** Animated probability bar (Reanimated width). */
 export function OddsBar({
   label,
   value,
@@ -22,22 +27,22 @@ export function OddsBar({
   delay = 0,
   emphasize = false,
 }: OddsBarProps) {
-  const width = useRef(new Animated.Value(0)).current;
+  const progress = useSharedValue(0);
   const pct = Math.round(value * 100);
 
   useEffect(() => {
-    Animated.timing(width, {
-      toValue: value,
-      duration: durations.bar,
+    progress.value = withDelay(
       delay,
-      useNativeDriver: false, // layout width can't use native driver
-    }).start();
-  }, [delay, value, width]);
+      withTiming(Math.max(0, Math.min(1, value)), {
+        duration: durations.bar,
+        easing: Easing.out(Easing.cubic),
+      }),
+    );
+  }, [delay, progress, value]);
 
-  const barWidth = width.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
+  const fillStyle = useAnimatedStyle(() => ({
+    width: `${progress.value * 100}%`,
+  }));
 
   return (
     <View style={styles.wrap}>
@@ -52,11 +57,7 @@ export function OddsBar({
       </View>
       <View style={styles.track}>
         <Animated.View
-          style={[
-            styles.fill,
-            emphasize ? styles.fillHot : null,
-            { width: barWidth },
-          ]}
+          style={[styles.fill, emphasize ? styles.fillHot : null, fillStyle]}
         />
       </View>
     </View>

@@ -1,3 +1,4 @@
+import { resolveLeagueBadge, resolveTeamCrest } from './crests';
 import { getBundledSeed } from './seedAsset';
 import type { HistoryMatchRow, HistorySeed, HistorySeedMatch } from './types';
 
@@ -65,7 +66,7 @@ function build(): Catalog {
       id: t.id,
       nameKey: t.name_key,
       name: t.display_name,
-      crestUrl: t.crest_url,
+      crestUrl: resolveTeamCrest(t.display_name, t.crest_url),
     });
   }
   const competitions = new Map<number, HistoryCompetition>();
@@ -236,6 +237,10 @@ export function getH2H(teamAId: number, teamBId: number, limit = 12): H2HSummary
 
 export function listCompetitions(): HistoryCompetition[] {
   return [...getCatalog().competitions.values()];
+}
+
+export function competitionBadgeUrl(code: string): string | null {
+  return resolveLeagueBadge(code);
 }
 
 export function parseHistoryMatchParam(id: string | undefined): number | null {

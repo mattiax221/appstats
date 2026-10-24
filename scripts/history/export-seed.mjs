@@ -38,6 +38,73 @@ function main() {
     )
     .all();
 
+  /** Keep in sync with src/data/history/crests.ts (api-sports media). */
+  const API = {
+    genoa: 495,
+    inter: 505,
+    parma: 523,
+    fiorentina: 502,
+    empoli: 511,
+    monza: 1579,
+    milan: 489,
+    torino: 503,
+    bologna: 500,
+    udinese: 494,
+    verona: 504,
+    napoli: 492,
+    cagliari: 490,
+    roma: 497,
+    lazio: 487,
+    venezia: 517,
+    lecce: 867,
+    atalanta: 499,
+    juventus: 496,
+    como: 895,
+    frosinone: 512,
+    salernitana: 514,
+    sassuolo: 488,
+    sampdoria: 498,
+    cremonese: 520,
+    spezia: 515,
+    crotone: 508,
+    benevento: 506,
+    'manchester united': 33,
+    fulham: 36,
+    ipswich: 57,
+    liverpool: 40,
+    arsenal: 42,
+    wolverhampton: 39,
+    everton: 45,
+    brighton: 51,
+    'newcastle united': 34,
+    southampton: 41,
+    "nott'm forest": 65,
+    bournemouth: 35,
+    'west ham': 48,
+    'aston villa': 66,
+    brentford: 55,
+    'crystal palace': 52,
+    chelsea: 49,
+    'manchester city': 50,
+    leicester: 46,
+    tottenham: 47,
+    burnley: 44,
+    luton: 1359,
+    'sheffield utd': 62,
+    leeds: 63,
+    watford: 38,
+    norwich: 71,
+    'west brom': 60,
+  };
+  const keyOf = (n) =>
+    String(n || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9']+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const seed = {
     version: 1,
     generatedAt: new Date().toISOString(),
@@ -47,12 +114,17 @@ function main() {
       name: c.name,
       country: c.country,
     })),
-    teams: teams.map((t) => ({
-      id: t.id,
-      name_key: t.name_key,
-      display_name: t.display_name,
-      crest_url: t.crest_url,
-    })),
+    teams: teams.map((t) => {
+      const api = API[keyOf(t.display_name)];
+      return {
+        id: t.id,
+        name_key: t.name_key,
+        display_name: t.display_name,
+        crest_url: api
+          ? `https://media.api-sports.io/football/teams/${api}.png`
+          : t.crest_url,
+      };
+    }),
     matches: matches.map((m) => [
       m.competition_id,
       m.season,

@@ -1,39 +1,36 @@
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { useNativeDriver } from './motion';
 import { colors, fonts, spacing } from './theme';
 
 type LiveBadgeProps = {
   minute?: number;
 };
 
-/** Pulsing LIVE indicator. */
+/** Pulsing LIVE indicator (Reanimated). */
 export function LiveBadge({ minute }: LiveBadgeProps) {
-  const pulse = useRef(new Animated.Value(1)).current;
+  const pulse = useSharedValue(1);
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 0.35,
-          duration: 700,
-          useNativeDriver,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 700,
-          useNativeDriver,
-        }),
-      ]),
+    pulse.value = withRepeat(
+      withTiming(0.25, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+      -1,
+      true,
     );
-    loop.start();
-    return () => loop.stop();
   }, [pulse]);
+
+  const dotStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
 
   return (
     <View style={styles.badge}>
-      <Animated.View style={[styles.dot, { opacity: pulse }]} />
+      <Animated.View style={[styles.dot, dotStyle]} />
       <Text style={styles.label}>LIVE</Text>
       {minute != null ? <Text style={styles.minute}>{minute}'</Text> : null}
     </View>

@@ -1,7 +1,14 @@
-import { type ReactNode, useEffect, useRef } from 'react';
-import { Animated, type StyleProp, type ViewStyle } from 'react-native';
+import { type ReactNode, useEffect } from 'react';
+import { type StyleProp, type ViewStyle } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { durations, useNativeDriver } from './motion';
+import { durations } from './motion';
 
 type StaggerItemProps = {
   children: ReactNode;
@@ -9,32 +16,27 @@ type StaggerItemProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** List stagger — each row arrives a beat after the previous. */
+/** List stagger via Reanimated — every row arrives a beat after the previous. */
 export function StaggerItem({ children, index, style }: StaggerItemProps) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(10)).current;
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(14);
 
   useEffect(() => {
-    const delay = 120 + index * durations.stagger;
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 380,
-        delay,
-        useNativeDriver,
-      }),
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 380,
-        delay,
-        useNativeDriver,
-      }),
-    ]).start();
+    const delay = 80 + Math.min(index, 16) * durations.stagger;
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) }),
+    );
+    translateY.value = withDelay(
+      delay,
+      withTiming(0, { duration: 420, easing: Easing.out(Easing.cubic) }),
+    );
   }, [index, opacity, translateY]);
 
-  return (
-    <Animated.View style={[{ opacity, transform: [{ translateY }] }, style]}>
-      {children}
-    </Animated.View>
-  );
+  const anim = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={[anim, style]}>{children}</Animated.View>;
 }
