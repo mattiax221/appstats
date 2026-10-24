@@ -36,7 +36,7 @@ html, body, #root {
   height: 100%;
 }
 body {
-  background-color: #07140E;
+  background-color: #050A08;
   margin: 0;
 }
 `;

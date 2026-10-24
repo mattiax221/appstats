@@ -37,6 +37,6 @@ const styles = StyleSheet.create({
   linkText: {
     fontFamily: fonts.bodyMedium,
     fontSize: 15,
-    color: colors.pitchLine,
+    color: colors.lime,
   },
 });

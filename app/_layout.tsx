@@ -3,11 +3,12 @@ import {
   useFonts as useBebas,
 } from '@expo-google-fonts/bebas-neue';
 import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_700Bold,
-  useFonts as useDmSans,
-} from '@expo-google-fonts/dm-sans';
+  Outfit_400Regular,
+  Outfit_500Medium,
+  Outfit_600SemiBold,
+  Outfit_700Bold,
+  useFonts as useOutfit,
+} from '@expo-google-fonts/outfit';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -16,7 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { QueryProvider } from '@/src/providers/QueryProvider';
-import { colors } from '@/src/ui/theme';
+import { colors, fonts } from '@/src/ui/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -33,14 +34,15 @@ if (Platform.OS !== 'web') {
 
 export default function RootLayout() {
   const [bebasLoaded, bebasError] = useBebas({ BebasNeue_400Regular });
-  const [dmLoaded, dmError] = useDmSans({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_700Bold,
+  const [outfitLoaded, outfitError] = useOutfit({
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
   });
 
-  const loaded = bebasLoaded && dmLoaded;
-  const error = bebasError ?? dmError;
+  const loaded = bebasLoaded && outfitLoaded;
+  const error = bebasError ?? outfitError;
 
   useEffect(() => {
     if (error) throw error;
@@ -69,10 +71,11 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: colors.bg },
+          headerStyle: { backgroundColor: colors.night },
           headerTintColor: colors.text,
-          headerTitleStyle: { fontFamily: 'DMSans_500Medium' },
-          contentStyle: { backgroundColor: colors.bg },
+          headerTitleStyle: { fontFamily: fonts.bodyMedium },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.night },
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -92,15 +95,15 @@ const styles = StyleSheet.create({
   boot: {
     flex: 1,
     width: '100%',
-    backgroundColor: colors.bg,
+    backgroundColor: colors.night,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bootBrand: {
     color: colors.text,
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 2,
   },
   bootHint: {
     marginTop: 8,

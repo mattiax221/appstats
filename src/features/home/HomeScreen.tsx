@@ -1,122 +1,105 @@
-import { Link } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { mockFixtures } from '@/src/data/mock/fixtures';
 import { BrandMark } from '@/src/ui/BrandMark';
+import { MatchRow } from '@/src/ui/MatchRow';
 import { Screen } from '@/src/ui/Screen';
+import { SectionHeader } from '@/src/ui/SectionHeader';
+import { StaggerItem } from '@/src/ui/StaggerItem';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function HomeScreen() {
-  const fade = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fade, {
-      toValue: 1,
-      duration: 700,
-      delay: 180,
-      useNativeDriver: Platform.OS !== 'web',
-    }).start();
-  }, [fade]);
+  const live = mockFixtures.filter((m) => m.status === 'live');
+  const upcoming = mockFixtures.filter((m) => m.status !== 'live');
 
   return (
     <Screen>
-      <BrandMark size="hero" />
-
-      <Animated.View style={[styles.block, { opacity: fade }]}>
+      <View style={styles.hero}>
+        <BrandMark size="hero" />
         <Text style={styles.headline}>Cosa c’è in campo oggi</Text>
         <Text style={styles.support}>
-          Giornata, forma e lettura del mercato — in un’unica app.
+          Giornata, forma e lettura del mercato — senza rumore.
         </Text>
-
-        <View style={styles.ctaRow}>
-          <Link href="/match/demo" asChild>
-            <Pressable style={({ pressed }) => [styles.ctaPrimary, pressed && styles.pressed]}>
-              <Text style={styles.ctaPrimaryLabel}>Apri partita demo</Text>
-            </Pressable>
-          </Link>
-          <Link href="/team/demo" asChild>
-            <Pressable style={({ pressed }) => [styles.ctaGhost, pressed && styles.pressed]}>
-              <Text style={styles.ctaGhostLabel}>Scheda squadra</Text>
-            </Pressable>
-          </Link>
-        </View>
-      </Animated.View>
-
-      <View style={styles.pitchStrip} accessibilityElementsHidden>
-        <View style={styles.pitchInner} />
       </View>
 
-      <Text style={styles.hint}>
-        Le partite live e le classifiche arriveranno in P1 (football-data.org).
+      <View style={styles.pitchBand} accessibilityElementsHidden>
+        <View style={styles.pitchBandInner} />
+        <View style={styles.pitchCircle} />
+      </View>
+
+      {live.length > 0 ? (
+        <>
+          <SectionHeader title="Live" subtitle="Aggiornamento manuale sul piano free" />
+          {live.map((match, index) => (
+            <StaggerItem key={match.id} index={index}>
+              <MatchRow match={match} />
+            </StaggerItem>
+          ))}
+        </>
+      ) : null}
+
+      <SectionHeader title="Prossime" subtitle="Serie A e top league · mock fino a P1" />
+      {upcoming.map((match, index) => (
+        <StaggerItem key={match.id} index={live.length + index}>
+          <MatchRow match={match} />
+        </StaggerItem>
+      ))}
+
+      <Text style={styles.footnote}>
+        Dati placeholder. Le API gratuite arrivano in P1–P4.
       </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  block: {
-    marginTop: spacing.xl,
+  hero: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
     gap: spacing.md,
+    minHeight: 280,
+    justifyContent: 'flex-end',
   },
   headline: {
     fontFamily: fonts.bodyBold,
     fontSize: 22,
     lineHeight: 28,
     color: colors.text,
-    maxWidth: 320,
+    maxWidth: 300,
+    marginTop: spacing.sm,
   },
   support: {
     fontFamily: fonts.body,
     fontSize: 16,
     lineHeight: 24,
     color: colors.textMuted,
-    maxWidth: 340,
+    maxWidth: 320,
   },
-  ctaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  ctaPrimary: {
-    backgroundColor: colors.pitchLine,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  ctaPrimaryLabel: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 14,
-    color: colors.bg,
-    letterSpacing: 0.2,
-  },
-  ctaGhost: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  ctaGhostLabel: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: colors.text,
-  },
-  pressed: { opacity: 0.75 },
-  pitchStrip: {
-    marginTop: spacing.xxl,
-    height: 120,
+  pitchBand: {
+    height: 96,
+    marginHorizontal: -spacing.lg,
     backgroundColor: colors.pitch,
-    overflow: 'hidden',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  pitchInner: {
+  pitchBandInner: {
     height: 2,
-    backgroundColor: 'rgba(242, 247, 240, 0.35)',
-    marginHorizontal: spacing.lg,
+    backgroundColor: 'rgba(244, 247, 241, 0.35)',
+    marginHorizontal: spacing.xl,
   },
-  hint: {
-    marginTop: spacing.lg,
+  pitchCircle: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: 'rgba(244, 247, 241, 0.28)',
+  },
+  footnote: {
+    marginTop: spacing.xl,
     fontFamily: fonts.body,
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 18,
     color: colors.textMuted,
   },

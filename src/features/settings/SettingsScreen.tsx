@@ -12,8 +12,8 @@ function KeyStatus({ label, ok }: { label: string; ok: boolean }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.badge, ok ? styles.badgeOk : styles.badgeMissing]}>
-        {ok ? 'configurata' : 'mancante'}
+      <Text style={[styles.status, ok ? styles.ok : styles.missing]}>
+        {ok ? 'ok' : 'assente'}
       </Text>
     </View>
   );
@@ -25,20 +25,21 @@ export function SettingsScreen() {
       <Text style={styles.kicker}>Impostazioni</Text>
       <Text style={styles.title}>Fonti e limiti</Text>
       <Text style={styles.body}>
-        Chiavi via variabili EXPO_PUBLIC_* (prototipo). Attribution e disclaimer
-        restano in app.
+        Chiavi EXPO_PUBLIC_* per il prototipo. Attribution e disclaimer restano
+        qui.
       </Text>
 
-      <View style={styles.section}>
-        <KeyStatus label="football-data.org" ok={hasFootballDataKey()} />
-        <KeyStatus label="API-Football" ok={hasApiFootballKey()} />
-        <KeyStatus label="The Odds API" ok={hasOddsApiKey()} />
-      </View>
+      <Text style={styles.section}>API keys</Text>
+      <KeyStatus label="football-data.org" ok={hasFootballDataKey()} />
+      <KeyStatus label="API-Football" ok={hasApiFootballKey()} />
+      <KeyStatus label="The Odds API" ok={hasOddsApiKey()} />
 
+      <Text style={styles.section}>Attribution</Text>
       <Text style={styles.sources}>
-        Fonti: football-data.org · API-Football · The Odds API. Rispetta i limiti
+        football-data.org · API-Football · The Odds API. Rispetta i rate limit
         del piano free.
       </Text>
+
       <Text style={styles.disclaimer}>
         AppStats fornisce informazioni sportive e una lettura delle quote. Non è
         consulenza sulle scommesse.
@@ -51,16 +52,17 @@ const styles = StyleSheet.create({
   kicker: {
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
-    letterSpacing: 1.2,
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
-    color: colors.amber,
+    color: colors.lime,
     marginBottom: spacing.sm,
   },
   title: {
     fontFamily: fonts.brand,
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: 48,
+    lineHeight: 50,
     color: colors.text,
+    letterSpacing: 1,
     marginBottom: spacing.md,
   },
   body: {
@@ -72,37 +74,42 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: spacing.xl,
-    gap: spacing.md,
+    marginBottom: spacing.sm,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.lime,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hairline,
   },
   rowLabel: {
     fontFamily: fonts.bodyMedium,
     fontSize: 15,
     color: colors.text,
   },
-  badge: {
-    fontFamily: fonts.body,
+  status: {
+    fontFamily: fonts.bodySemi,
     fontSize: 12,
-    letterSpacing: 0.3,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  badgeOk: { color: colors.pitchLine },
-  badgeMissing: { color: colors.textMuted },
+  ok: { color: colors.lime },
+  missing: { color: colors.textMuted },
   sources: {
-    marginTop: spacing.xl,
     fontFamily: fonts.body,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSoft,
   },
   disclaimer: {
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,
