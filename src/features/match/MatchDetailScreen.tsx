@@ -10,11 +10,14 @@ import {
   parseHistoryMatchParam,
   toHistoryRow,
 } from '@/src/data/history/catalog';
+import { HistoryMatchCard } from '@/src/ui/HistoryMatchCard';
 import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { SectionHeader } from '@/src/ui/SectionHeader';
+import { StaggerItem } from '@/src/ui/StaggerItem';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
+import { layout } from '@/src/ui/tokens';
 
 export function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,8 +27,7 @@ export function MatchDetailScreen() {
   const home = match ? getTeam(match.homeTeamId) : null;
   const away = match ? getTeam(match.awayTeamId) : null;
   const h2h = useMemo(
-    () =>
-      match ? getH2H(match.homeTeamId, match.awayTeamId, 10) : null,
+    () => (match ? getH2H(match.homeTeamId, match.awayTeamId, 8) : null),
     [match],
   );
   const homeForm = match ? getTeamStats(match.homeTeamId, 5).form : [];
@@ -49,14 +51,16 @@ export function MatchDetailScreen() {
       <View style={styles.teams}>
         <Link href={`/team/${home.id}`} asChild>
           <PressableScale style={styles.team} scaleTo={0.97}>
-            <TeamCrest uri={home.crestUrl} name={home.name} size={64} delay={80} />
+            <TeamCrest uri={home.crestUrl} name={home.name} size={layout.crestLg} delay={60} />
             <Text style={styles.teamName}>{home.name}</Text>
             <FormDots form={homeForm} />
           </PressableScale>
         </Link>
         <View style={styles.mid}>
           <Text style={styles.score}>
-            {row.homeGoals}:{row.awayGoals}
+            {row.homeGoals}
+            <Text style={styles.scoreSep}>:</Text>
+            {row.awayGoals}
           </Text>
           {row.htHomeGoals != null && row.htAwayGoals != null ? (
             <Text style={styles.ht}>
@@ -66,7 +70,7 @@ export function MatchDetailScreen() {
         </View>
         <Link href={`/team/${away.id}`} asChild>
           <PressableScale style={styles.team} scaleTo={0.97}>
-            <TeamCrest uri={away.crestUrl} name={away.name} size={64} delay={140} />
+            <TeamCrest uri={away.crestUrl} name={away.name} size={layout.crestLg} delay={100} />
             <Text style={styles.teamName}>{away.name}</Text>
             <FormDots form={awayForm} />
           </PressableScale>
@@ -75,28 +79,17 @@ export function MatchDetailScreen() {
 
       <SectionHeader title="H2H" />
       <View style={styles.h2hBar}>
-        <Text style={styles.h2hNum}>{h2h.teamAWins}</Text>
-        <Text style={styles.h2hLabel}>V {home.name}</Text>
-        <Text style={styles.h2hNum}>{h2h.draws}</Text>
-        <Text style={styles.h2hLabel}>N</Text>
-        <Text style={styles.h2hNum}>{h2h.teamBWins}</Text>
-        <Text style={styles.h2hLabel}>V {away.name}</Text>
+        <H2HStat value={h2h.teamAWins} label={`V ${home.name}`} />
+        <H2HStat value={h2h.draws} label="N" />
+        <H2HStat value={h2h.teamBWins} label={`V ${away.name}`} />
       </View>
       <Text style={styles.h2hMeta}>{h2h.played} confronti nello storico</Text>
 
-      {h2h.matches.map((m) => {
-        const r = toHistoryRow(m);
-        return (
-          <Link key={m.id} href={`/match/h-${m.id}`} asChild>
-            <PressableScale style={styles.h2hRow} scaleTo={0.98}>
-              <Text style={styles.h2hDate}>{r.matchDate}</Text>
-              <Text style={styles.h2hScore}>
-                {r.homeName} {r.homeGoals}:{r.awayGoals} {r.awayName}
-              </Text>
-            </PressableScale>
-          </Link>
-        );
-      })}
+      {h2h.matches.map((m, index) => (
+        <StaggerItem key={m.id} index={index}>
+          <HistoryMatchCard match={toHistoryRow(m)} enterDelay={40 + index * 30} />
+        </StaggerItem>
+      ))}
     </Screen>
   );
 }
@@ -115,6 +108,17 @@ function FormDots({ form }: { form: Array<'V' | 'N' | 'P'> }) {
           ]}
         />
       ))}
+    </View>
+  );
+}
+
+function H2HStat({ value, label }: { value: number; label: string }) {
+  return (
+    <View style={styles.h2hStat}>
+      <Text style={styles.h2hNum}>{value}</Text>
+      <Text style={styles.h2hLabel} numberOfLines={1}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -160,7 +164,7 @@ const styles = StyleSheet.create({
   mid: {
     width: 72,
     alignItems: 'center',
-    paddingTop: 18,
+    paddingTop: 14,
   },
   score: {
     fontFamily: fonts.brand,
@@ -168,6 +172,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
     color: colors.text,
   },
+  scoreSep: { color: colors.textMuted, fontSize: 32 },
   ht: {
     marginTop: 4,
     fontFamily: fonts.bodyMedium,
@@ -190,10 +195,18 @@ const styles = StyleSheet.create({
   dotLoss: { backgroundColor: colors.danger },
   h2hBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
+  },
+  h2hStat: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.nightLift,
+    borderRadius: layout.cardRadius,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+    alignItems: 'center',
+    gap: 4,
   },
   h2hNum: {
     fontFamily: fonts.bodyBold,
@@ -202,30 +215,15 @@ const styles = StyleSheet.create({
   },
   h2hLabel: {
     fontFamily: fonts.body,
-    fontSize: 13,
+    fontSize: 11,
     color: colors.textMuted,
-    marginRight: spacing.sm,
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   h2hMeta: {
     marginBottom: spacing.md,
     fontFamily: fonts.body,
     fontSize: 13,
     color: colors.textSoft,
-  },
-  h2hRow: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
-    gap: 2,
-  },
-  h2hDate: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  h2hScore: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 14,
-    color: colors.text,
   },
 });

@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { hasFootballDataKey } from '@/src/config/env';
 import { useFavorites } from '@/src/data/favorites/useFavorites';
@@ -14,13 +14,16 @@ import { leagueFilters } from '@/src/data/mock/fixtures';
 import { ApiKeyEmptyState } from '@/src/ui/ApiKeyEmptyState';
 import { BrandMark } from '@/src/ui/BrandMark';
 import { FilterChip } from '@/src/ui/Chip';
+import { HistoryMatchCard } from '@/src/ui/HistoryMatchCard';
 import { MatchRow } from '@/src/ui/MatchRow';
 import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { SectionHeader } from '@/src/ui/SectionHeader';
+import { SkeletonList } from '@/src/ui/Skeleton';
 import { StaggerItem } from '@/src/ui/StaggerItem';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
+import { layout } from '@/src/ui/tokens';
 
 import { useHomeFixtures } from './useHomeFixtures';
 
@@ -79,6 +82,7 @@ export function HomeScreen() {
         <View style={styles.pitchBandInner} />
         <View style={styles.pitchCircle} />
       </View>
+
 
       <View style={styles.filters}>
         {leagueFilters.map((f) => (
@@ -140,32 +144,14 @@ export function HomeScreen() {
 
       <SectionHeader title={historyTitle} />
       {historyRows.map((m, index) => (
-        <StaggerItem key={m.id} index={Math.min(index, 10)}>
-          <Link href={`/match/h-${m.id}`} asChild>
-            <PressableScale style={styles.histRow} scaleTo={0.98}>
-              <Text style={styles.histDate}>{m.matchDate}</Text>
-              <View style={styles.histTeams}>
-                <TeamCrest uri={m.homeCrest} name={m.homeName} size={24} delay={30} />
-                <Text style={styles.histScore}>
-                  {m.homeGoals}:{m.awayGoals}
-                </Text>
-                <TeamCrest uri={m.awayCrest} name={m.awayName} size={24} delay={50} />
-              </View>
-              <Text style={styles.histNames} numberOfLines={1}>
-                {m.homeName} – {m.awayName}
-              </Text>
-            </PressableScale>
-          </Link>
+        <StaggerItem key={m.id} index={index}>
+          <HistoryMatchCard match={m} enterDelay={40 + index * 30} />
         </StaggerItem>
       ))}
 
       {!hasKey ? <ApiKeyEmptyState /> : null}
 
-      {hasKey && isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.lime} />
-        </View>
-      ) : null}
+      {hasKey && isLoading ? <SkeletonList count={3} /> : null}
 
       {hasKey && isError ? (
         <View style={styles.errorBox}>
@@ -252,9 +238,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: layout.cardPad,
     backgroundColor: colors.nightLift,
-    borderRadius: 10,
+    borderRadius: layout.cardRadius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.limeLine,
   },
@@ -281,7 +267,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     backgroundColor: colors.nightLift,
-    borderRadius: 10,
+    borderRadius: layout.cardRadius,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.limeLine,
     maxWidth: '48%',
@@ -291,41 +277,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     fontSize: 13,
     color: colors.text,
-  },
-  histRow: {
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.nightLift,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.hairline,
-    gap: 4,
-  },
-  histDate: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  histTeams: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  histScore: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 18,
-    color: colors.text,
-    minWidth: 40,
-    textAlign: 'center',
-  },
-  histNames: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.textSoft,
-  },
-  center: {
-    paddingVertical: spacing.xl,
-    alignItems: 'center',
   },
   empty: {
     fontFamily: fonts.body,

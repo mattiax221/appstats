@@ -1,15 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { durations, useNativeDriver } from './motion';
+import { resolveTeamCrest } from '@/src/data/history/crests';
+
 import { colors, fonts } from './theme';
 
 type TeamCrestProps = {
@@ -17,58 +18,60 @@ type TeamCrestProps = {
   name: string;
   size?: number;
   style?: StyleProp<ViewStyle>;
-  /** Stagger delay for entrance. */
   delay?: number;
 };
 
-/** Crest with scale-in entrance + initials fallback. */
+/** Crest with spring entrance + initials only as last-resort fallback. */
 export function TeamCrest({ uri, name, size = 36, style, delay = 0 }: TeamCrestProps) {
-  const [failed, setFailed] = useState(!uri);
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.72)).current;
+  const resolved = resolveTeamCrest(name, uri);
+  const [failed, setFailed] = useState(false);
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.78);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: durations.enter,
-        delay,
-        useNativeDriver,
-      }),
-      Animated.spring(scale, {
-        toValue: 1,
-        friction: 6,
-        tension: 80,
-        delay,
-        useNativeDriver,
-      }),
-    ]).start();
+    setFailed(false);
+  }, [resolved]);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) }));
+    scale.value = withDelay(delay, withSpring(1, { damping: 14, stiffness: 160 }));
   }, [delay, opacity, scale]);
+
+  const anim = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
 
   const initials = name
     .split(/\s+/)
+    .filter(Boolean)
     .map((w) => w[0])
     .join('')
-    .slice(0, 3)
+    .slice(0, 2)
     .toUpperCase();
+
+  const showImage = Boolean(resolved) && !failed;
 
   return (
     <Animated.View
       style={[
         styles.wrap,
-        { width: size, height: size, borderRadius: size * 0.22, opacity, transform: [{ scale }] },
+        { width: size, height: size, borderRadius: size * 0.22 },
+        anim,
         style,
       ]}>
-      {!failed && uri ? (
+      {showImage ? (
         <Image
-          source={{ uri }}
+          source={{ uri: resolved! }}
           style={{ width: size * 0.78, height: size * 0.78 }}
           resizeMode="contain"
           onError={() => setFailed(true)}
           accessibilityIgnoresInvertColors
         />
       ) : (
-        <Text style={[styles.initials, { fontSize: size * 0.28 }]}>{initials}</Text>
+        <View style={[styles.fallback, { width: size, height: size }]}>
+          <Text style={[styles.initials, { fontSize: size * 0.3 }]}>{initials}</Text>
+        </View>
       )}
     </Animated.View>
   );
@@ -82,6 +85,10 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.hairline,
     overflow: 'hidden',
+  },
+  fallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   initials: {
     fontFamily: fonts.bodyBold,

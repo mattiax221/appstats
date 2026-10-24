@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 
+import { resolveLeagueBadge } from '@/src/data/history/crests';
+
 import { PressableScale } from './PressableScale';
 import { colors, fonts, spacing } from './theme';
 
@@ -67,10 +69,11 @@ type CompetitionBadgeProps = {
 };
 
 export function CompetitionBadge({ name, crestUrl, matchday }: CompetitionBadgeProps) {
+  const badge = crestUrl || resolveLeagueBadge(name);
   return (
     <View style={styles.compBadge}>
-      {crestUrl ? (
-        <Image source={{ uri: crestUrl }} style={styles.compCrest} resizeMode="contain" />
+      {badge ? (
+        <Image source={{ uri: badge }} style={styles.compCrest} resizeMode="contain" />
       ) : null}
       <Text style={styles.compName} numberOfLines={1}>
         {name}
