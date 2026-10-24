@@ -50,9 +50,6 @@ export function BrandMark({ size = 'hero' }: BrandMarkProps) {
           { transform: [{ scaleX: lineScale }] },
         ]}
       />
-      {isHero ? (
-        <Text style={styles.tag}>Matchday · Stats · Mercato</Text>
-      ) : null}
     </Animated.View>
   );
 }
@@ -79,12 +76,4 @@ const styles = StyleSheet.create({
   },
   lineHero: { width: 88 },
   lineCompact: { width: 44 },
-  tag: {
-    marginTop: spacing.md,
-    fontFamily: fonts.bodyMedium,
-    fontSize: 13,
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
-  },
 });

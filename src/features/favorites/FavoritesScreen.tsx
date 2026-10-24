@@ -11,18 +11,18 @@ import { colors, fonts, spacing } from '@/src/ui/theme';
 export function FavoritesScreen() {
   return (
     <Screen>
-      <Text style={styles.kicker}>Preferiti</Text>
-      <Text style={styles.title}>Le tue squadre</Text>
-      <Text style={styles.body}>
-        Home e quote orientate su ciò che segui — meno chiamate API, più
-        segnale.
-      </Text>
+      <Text style={styles.title}>Preferiti</Text>
 
       {mockFavoriteTeams.map((team, index) => (
         <StaggerItem key={team.id} index={index}>
           <Link href={`/team/${team.id}`} asChild>
             <PressableScale style={styles.row} scaleTo={0.98}>
-              <TeamCrest uri={team.crestUrl} name={team.name} size={44} />
+              <TeamCrest
+                uri={team.crestUrl}
+                name={team.name}
+                size={44}
+                delay={80 + index * 50}
+              />
               <View style={styles.meta}>
                 <Text style={styles.name}>{team.name}</Text>
                 <Text style={styles.comp}>{team.competition}</Text>
@@ -32,37 +32,17 @@ export function FavoritesScreen() {
           </Link>
         </StaggerItem>
       ))}
-
-      <Text style={styles.hint}>
-        Persistenza locale in P3. Crest da CDN demo.
-      </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    color: colors.lime,
-    marginBottom: spacing.sm,
-  },
   title: {
     fontFamily: fonts.brand,
     fontSize: 48,
     lineHeight: 50,
     color: colors.text,
     letterSpacing: 1,
-    marginBottom: spacing.md,
-  },
-  body: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textMuted,
-    maxWidth: 360,
     marginBottom: spacing.lg,
   },
   row: {
@@ -91,13 +71,6 @@ const styles = StyleSheet.create({
   chev: {
     fontFamily: fonts.body,
     fontSize: 22,
-    color: colors.textMuted,
-  },
-  hint: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    lineHeight: 18,
     color: colors.textMuted,
   },
 });

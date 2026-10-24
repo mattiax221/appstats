@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { mockFavoriteTeams, mockFixtures } from '@/src/data/mock/fixtures';
 import { MatchRow } from '@/src/ui/MatchRow';
 import { Screen } from '@/src/ui/Screen';
+import { SectionHeader } from '@/src/ui/SectionHeader';
 import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
@@ -20,9 +21,8 @@ export function TeamDetailScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <TeamCrest uri={crest} name={name} size={72} />
+        <TeamCrest uri={crest} name={name} size={72} delay={60} />
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Squadra</Text>
           <Text style={styles.title}>{name}</Text>
           {team ? <Text style={styles.comp}>{team.competition}</Text> : null}
         </View>
@@ -42,20 +42,15 @@ export function TeamDetailScreen() {
           </View>
         ))}
       </View>
-      <Text style={styles.formLabel}>Forma recente · mock</Text>
 
       {related.length > 0 ? (
         <>
-          <Text style={styles.section}>Partite</Text>
-          {related.map((m) => (
-            <MatchRow key={m.id} match={m} />
+          <SectionHeader title="Partite" />
+          {related.map((m, i) => (
+            <MatchRow key={m.id} match={m} enterDelay={100 + i * 40} />
           ))}
         </>
       ) : null}
-
-      <Text style={styles.body}>
-        GF/GS, casa/trasferta e classifica arrivano in P2.
-      </Text>
     </Screen>
   );
 }
@@ -68,13 +63,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   headerText: { flex: 1, gap: 4 },
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    color: colors.lime,
-  },
   title: {
     fontFamily: fonts.brand,
     fontSize: 40,
@@ -106,28 +94,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     fontSize: 13,
     color: colors.text,
-  },
-  formLabel: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  section: {
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    fontFamily: fonts.bodySemi,
-    fontSize: 13,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    color: colors.lime,
-  },
-  body: {
-    marginTop: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textMuted,
   },
 });

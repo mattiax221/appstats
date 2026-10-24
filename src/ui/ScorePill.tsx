@@ -1,5 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 
+import { useNativeDriver } from './motion';
 import { colors, fonts, spacing } from './theme';
 
 type ScorePillProps = {
@@ -9,17 +11,31 @@ type ScorePillProps = {
 };
 
 export function ScorePill({ home, away, live }: ScorePillProps) {
-  return (
+  const glow = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!live) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glow, { toValue: 0.55, duration: 800, useNativeDriver }),
+        Animated.timing(glow, { toValue: 1, duration: 800, useNativeDriver }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [glow, live]);
+
+  const pill = (
     <View style={[styles.pill, live && styles.pillLive]}>
-      <Text style={[styles.score, live && styles.scoreLive]}>
-        {home ?? '–'}
-      </Text>
+      <Text style={[styles.score, live && styles.scoreLive]}>{home ?? '–'}</Text>
       <Text style={[styles.sep, live && styles.scoreLive]}>:</Text>
-      <Text style={[styles.score, live && styles.scoreLive]}>
-        {away ?? '–'}
-      </Text>
+      <Text style={[styles.score, live && styles.scoreLive]}>{away ?? '–'}</Text>
     </View>
   );
+
+  if (!live) return pill;
+
+  return <Animated.View style={{ opacity: glow }}>{pill}</Animated.View>;
 }
 
 const styles = StyleSheet.create({

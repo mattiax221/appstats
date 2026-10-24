@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -5,6 +6,7 @@ import {
   hasFootballDataKey,
   hasOddsApiKey,
 } from '@/src/config/env';
+import { PressableScale } from '@/src/ui/PressableScale';
 import { Screen } from '@/src/ui/Screen';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
@@ -13,7 +15,7 @@ function KeyStatus({ label, ok }: { label: string; ok: boolean }) {
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
       <Text style={[styles.status, ok ? styles.ok : styles.missing]}>
-        {ok ? 'ok' : 'assente'}
+        {ok ? 'ok' : '—'}
       </Text>
     </View>
   );
@@ -22,58 +24,71 @@ function KeyStatus({ label, ok }: { label: string; ok: boolean }) {
 export function SettingsScreen() {
   return (
     <Screen>
-      <Text style={styles.kicker}>Impostazioni</Text>
-      <Text style={styles.title}>Fonti e limiti</Text>
-      <Text style={styles.body}>
-        Chiavi EXPO_PUBLIC_* per il prototipo. Attribution e disclaimer restano
-        qui.
-      </Text>
+      <Text style={styles.title}>Impostazioni</Text>
 
-      <Text style={styles.section}>API keys</Text>
+      <PressableScale
+        onPress={() => router.push('/roadmap')}
+        style={styles.roadmapLink}
+        scaleTo={0.98}
+        accessibilityRole="button">
+        <View>
+          <Text style={styles.roadmapTitle}>Roadmap</Text>
+          <Text style={styles.roadmapSub}>Fasi prodotto · fatto e prossimo</Text>
+        </View>
+        <Text style={styles.chev}>›</Text>
+      </PressableScale>
+
+      <Text style={styles.section}>API</Text>
       <KeyStatus label="football-data.org" ok={hasFootballDataKey()} />
       <KeyStatus label="API-Football" ok={hasApiFootballKey()} />
       <KeyStatus label="The Odds API" ok={hasOddsApiKey()} />
 
-      <Text style={styles.section}>Attribution</Text>
-      <Text style={styles.sources}>
-        football-data.org · API-Football · The Odds API. Rispetta i rate limit
-        del piano free.
-      </Text>
-
       <Text style={styles.disclaimer}>
-        AppStats fornisce informazioni sportive e una lettura delle quote. Non è
-        consulenza sulle scommesse.
+        Informazioni sportive e lettura del mercato. Non è consulenza sulle
+        scommesse.
       </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  kicker: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    color: colors.lime,
-    marginBottom: spacing.sm,
-  },
   title: {
     fontFamily: fonts.brand,
     fontSize: 48,
     lineHeight: 50,
     color: colors.text,
     letterSpacing: 1,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
-  body: {
-    fontFamily: fonts.body,
+  roadmapLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    backgroundColor: colors.nightLift,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.limeLine,
+    gap: spacing.md,
+  },
+  roadmapTitle: {
+    fontFamily: fonts.bodySemi,
     fontSize: 16,
-    lineHeight: 24,
+    color: colors.lime,
+  },
+  roadmapSub: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.textMuted,
-    maxWidth: 360,
+  },
+  chev: {
+    fontFamily: fonts.body,
+    fontSize: 22,
+    color: colors.lime,
   },
   section: {
-    marginTop: spacing.xl,
     marginBottom: spacing.sm,
     fontFamily: fonts.bodySemi,
     fontSize: 13,
@@ -102,12 +117,6 @@ const styles = StyleSheet.create({
   },
   ok: { color: colors.lime },
   missing: { color: colors.textMuted },
-  sources: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 22,
-    color: colors.textSoft,
-  },
   disclaimer: {
     marginTop: spacing.xl,
     fontFamily: fonts.body,

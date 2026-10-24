@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from './PressableScale';
 import { colors, fonts, spacing } from './theme';
@@ -11,17 +12,38 @@ type FilterChipProps = {
 };
 
 export function FilterChip({ label, selected, crestUrl, onPress }: FilterChipProps) {
+  const progress = useRef(new Animated.Value(selected ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: selected ? 1 : 0,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, selected]);
+
+  const backgroundColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.charcoal, 'rgba(212, 255, 42, 0.18)'],
+  });
+  const borderColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.hairline, colors.limeLine],
+  });
+
   return (
     <PressableScale
       onPress={onPress}
       scaleTo={0.94}
       accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={[styles.chip, selected && styles.chipSelected]}>
-      {crestUrl ? (
-        <Image source={{ uri: crestUrl }} style={styles.crest} resizeMode="contain" />
-      ) : null}
-      <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
+      accessibilityState={{ selected }}>
+      <Animated.View style={[styles.chip, { backgroundColor, borderColor }]}>
+        {crestUrl ? (
+          <Image source={{ uri: crestUrl }} style={styles.crest} resizeMode="contain" />
+        ) : null}
+        <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
+      </Animated.View>
     </PressableScale>
   );
 }
@@ -66,14 +88,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: colors.charcoal,
     borderWidth: 1,
-    borderColor: colors.hairline,
     minHeight: 40,
-  },
-  chipSelected: {
-    backgroundColor: colors.limeDim,
-    borderColor: colors.limeLine,
   },
   crest: { width: 16, height: 16 },
   label: {

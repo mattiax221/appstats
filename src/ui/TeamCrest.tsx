@@ -1,6 +1,15 @@
-import { useState } from 'react';
-import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
+import { durations, useNativeDriver } from './motion';
 import { colors, fonts } from './theme';
 
 type TeamCrestProps = {
@@ -8,11 +17,34 @@ type TeamCrestProps = {
   name: string;
   size?: number;
   style?: StyleProp<ViewStyle>;
+  /** Stagger delay for entrance. */
+  delay?: number;
 };
 
-/** Crest image with initials fallback if CDN fails. */
-export function TeamCrest({ uri, name, size = 36, style }: TeamCrestProps) {
+/** Crest with scale-in entrance + initials fallback. */
+export function TeamCrest({ uri, name, size = 36, style, delay = 0 }: TeamCrestProps) {
   const [failed, setFailed] = useState(!uri);
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.72)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: durations.enter,
+        delay,
+        useNativeDriver,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        delay,
+        useNativeDriver,
+      }),
+    ]).start();
+  }, [delay, opacity, scale]);
+
   const initials = name
     .split(/\s+/)
     .map((w) => w[0])
@@ -21,10 +53,10 @@ export function TeamCrest({ uri, name, size = 36, style }: TeamCrestProps) {
     .toUpperCase();
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.wrap,
-        { width: size, height: size, borderRadius: size * 0.22 },
+        { width: size, height: size, borderRadius: size * 0.22, opacity, transform: [{ scale }] },
         style,
       ]}>
       {!failed && uri ? (
@@ -38,7 +70,7 @@ export function TeamCrest({ uri, name, size = 36, style }: TeamCrestProps) {
       ) : (
         <Text style={[styles.initials, { fontSize: size * 0.28 }]}>{initials}</Text>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

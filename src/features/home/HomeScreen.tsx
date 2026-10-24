@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,7 +5,6 @@ import { leagueFilters, mockFixtures } from '@/src/data/mock/fixtures';
 import { BrandMark } from '@/src/ui/BrandMark';
 import { FilterChip } from '@/src/ui/Chip';
 import { MatchRow } from '@/src/ui/MatchRow';
-import { PrimaryButton } from '@/src/ui/PrimaryButton';
 import { Screen } from '@/src/ui/Screen';
 import { SectionHeader } from '@/src/ui/SectionHeader';
 import { StaggerItem } from '@/src/ui/StaggerItem';
@@ -22,27 +20,11 @@ export function HomeScreen() {
 
   const live = filtered.filter((m) => m.status === 'live');
   const upcoming = filtered.filter((m) => m.status !== 'live');
-  const featured = live[0] ?? upcoming[0];
 
   return (
     <Screen>
       <View style={styles.hero}>
         <BrandMark size="hero" />
-        <Text style={styles.headline}>Cosa c’è in campo oggi</Text>
-        <Text style={styles.support}>
-          Score live, crests e lettura del mercato — stile matchday.
-        </Text>
-        {featured ? (
-          <PrimaryButton
-            label={
-              featured.status === 'live'
-                ? `Apri ${featured.home.shortName}–${featured.away.shortName}`
-                : 'Vedi partita in evidenza'
-            }
-            onPress={() => router.push(`/match/${featured.id}`)}
-            style={styles.cta}
-          />
-        ) : null}
       </View>
 
       <View style={styles.pitchBand} accessibilityElementsHidden>
@@ -50,7 +32,6 @@ export function HomeScreen() {
         <View style={styles.pitchCircle} />
       </View>
 
-      <Text style={styles.filterLabel}>Competizioni</Text>
       <View style={styles.filters}>
         {leagueFilters.map((f) => (
           <FilterChip
@@ -65,29 +46,25 @@ export function HomeScreen() {
 
       {live.length > 0 ? (
         <>
-          <SectionHeader title="Live" subtitle="Aggiornamento manuale sul piano free" />
+          <SectionHeader title="Live" />
           {live.map((match, index) => (
             <StaggerItem key={match.id} index={index}>
-              <MatchRow match={match} />
+              <MatchRow match={match} enterDelay={80 + index * 40} />
             </StaggerItem>
           ))}
         </>
       ) : null}
 
-      <SectionHeader title="Prossime" subtitle="Crest e orari · mock fino a P1" />
+      <SectionHeader title="Prossime" />
       {upcoming.length === 0 ? (
-        <Text style={styles.empty}>Nessuna partita per questo filtro.</Text>
+        <Text style={styles.empty}>Nessuna partita</Text>
       ) : (
         upcoming.map((match, index) => (
           <StaggerItem key={match.id} index={live.length + index}>
-            <MatchRow match={match} />
+            <MatchRow match={match} enterDelay={120 + (live.length + index) * 45} />
           </StaggerItem>
         ))
       )}
-
-      <Text style={styles.footnote}>
-        Stemmi da media.api-sports.io (demo). Dati partita ancora mock.
-      </Text>
     </Screen>
   );
 }
@@ -95,33 +72,12 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   hero: {
     paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
-    gap: spacing.md,
-    minHeight: 260,
-    justifyContent: 'flex-end',
-  },
-  headline: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 22,
-    lineHeight: 28,
-    color: colors.text,
-    maxWidth: 300,
-    marginTop: spacing.sm,
-  },
-  support: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.textMuted,
-    maxWidth: 320,
-  },
-  cta: {
-    alignSelf: 'flex-start',
-    marginTop: spacing.xs,
+    paddingBottom: spacing.md,
   },
   pitchBand: {
-    height: 88,
+    height: 72,
     marginHorizontal: -spacing.lg,
+    marginBottom: spacing.md,
     backgroundColor: colors.pitch,
     justifyContent: 'center',
     overflow: 'hidden',
@@ -134,38 +90,22 @@ const styles = StyleSheet.create({
   pitchCircle: {
     position: 'absolute',
     alignSelf: 'center',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: 'rgba(244, 247, 241, 0.28)',
-  },
-  filterLabel: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-    fontFamily: fonts.bodySemi,
-    fontSize: 12,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    color: colors.textMuted,
   },
   filters: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   empty: {
     fontFamily: fonts.body,
     fontSize: 14,
     color: colors.textMuted,
     paddingVertical: spacing.md,
-  },
-  footnote: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.textMuted,
   },
 });

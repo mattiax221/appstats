@@ -12,6 +12,8 @@ import { colors, fonts, spacing } from './theme';
 
 type MatchRowProps = {
   match: UiMatch;
+  /** Base delay for crest stagger. */
+  enterDelay?: number;
 };
 
 function kickoffTime(iso: string): string {
@@ -19,7 +21,7 @@ function kickoffTime(iso: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-export function MatchRow({ match }: MatchRowProps) {
+export function MatchRow({ match, enterDelay = 0 }: MatchRowProps) {
   const live = match.status === 'live';
 
   return (
@@ -44,7 +46,12 @@ export function MatchRow({ match }: MatchRowProps) {
 
         <View style={styles.body}>
           <View style={styles.side}>
-            <TeamCrest uri={match.home.crestUrl} name={match.home.name} size={40} />
+            <TeamCrest
+              uri={match.home.crestUrl}
+              name={match.home.name}
+              size={40}
+              delay={enterDelay}
+            />
             <Text style={styles.teamName} numberOfLines={1}>
               {match.home.name}
             </Text>
@@ -62,9 +69,14 @@ export function MatchRow({ match }: MatchRowProps) {
             )}
           </View>
 
-          <View style={[styles.side, styles.sideAway]}>
-            <TeamCrest uri={match.away.crestUrl} name={match.away.name} size={40} />
-            <Text style={[styles.teamName, styles.teamAway]} numberOfLines={1}>
+          <View style={styles.side}>
+            <TeamCrest
+              uri={match.away.crestUrl}
+              name={match.away.name}
+              size={40}
+              delay={enterDelay + 60}
+            />
+            <Text style={styles.teamName} numberOfLines={1}>
               {match.away.name}
             </Text>
           </View>
@@ -102,7 +114,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     minWidth: 0,
   },
-  sideAway: {},
   teamName: {
     fontFamily: fonts.bodySemi,
     fontSize: 13,
@@ -110,7 +121,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
-  teamAway: {},
   center: {
     width: 72,
     alignItems: 'center',

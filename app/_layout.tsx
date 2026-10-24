@@ -86,6 +86,10 @@ export default function RootLayout() {
           name="team/[id]"
           options={{ title: 'Squadra', headerBackTitle: 'Indietro' }}
         />
+        <Stack.Screen
+          name="roadmap"
+          options={{ title: 'Roadmap', headerBackTitle: 'Indietro' }}
+        />
       </Stack>
     </QueryProvider>
   );

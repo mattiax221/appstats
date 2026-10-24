@@ -15,16 +15,19 @@ export function FadeIn({ children, delay = 0, style }: FadeInProps) {
   const translateY = useRef(new Animated.Value(14)).current;
 
   useEffect(() => {
+    opacity.setValue(0);
+    translateY.setValue(16);
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: durations.enter,
+        duration: durations.enter + 40,
         delay,
         useNativeDriver,
       }),
-      Animated.timing(translateY, {
+      Animated.spring(translateY, {
         toValue: 0,
-        duration: durations.enter,
+        friction: 8,
+        tension: 70,
         delay,
         useNativeDriver,
       }),

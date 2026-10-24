@@ -4,23 +4,20 @@ import { colors, fonts, spacing } from './theme';
 
 type SectionHeaderProps = {
   title: string;
-  subtitle?: string;
 };
 
-export function SectionHeader({ title, subtitle }: SectionHeaderProps) {
+export function SectionHeader({ title }: SectionHeaderProps) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     marginBottom: spacing.sm,
-    gap: spacing.xs,
   },
   title: {
     fontFamily: fonts.bodySemi,
@@ -28,11 +25,5 @@ const styles = StyleSheet.create({
     letterSpacing: 1.8,
     textTransform: 'uppercase',
     color: colors.lime,
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textMuted,
   },
 });
