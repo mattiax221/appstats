@@ -1,8 +1,13 @@
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { mockMarkets } from '@/src/data/mock/fixtures';
-import { CompetitionBadge, TimeChip } from '@/src/ui/Chip';
+import { hasOddsApiKey } from '@/src/config/env';
+import { oddsApiAdapter } from '@/src/data/adapters/odds-api';
+import { useFavorites } from '@/src/data/favorites/useFavorites';
+import { listHistoryPredictions, valueEdges } from '@/src/data/history/predict';
+import { CompetitionBadge } from '@/src/ui/Chip';
 import { FadeIn } from '@/src/ui/FadeIn';
 import { OddsBar } from '@/src/ui/OddsBar';
 import { PressableScale } from '@/src/ui/PressableScale';
@@ -11,92 +16,137 @@ import { TeamCrest } from '@/src/ui/TeamCrest';
 import { colors, fonts, spacing } from '@/src/ui/theme';
 
 export function PredictionsScreen() {
-  const featured = mockMarkets[0];
-  const rest = mockMarkets.slice(1);
+  const fav = useFavorites();
+  const predictions = useMemo(
+    () => listHistoryPredictions({ favoriteTeamIds: fav.teamIds, limit: 10 }),
+    [fav.teamIds],
+  );
+  const featured = predictions[0];
+  const rest = predictions.slice(1);
+  const withOdds = hasOddsApiKey();
 
-  const topKey = (c: { home: number; draw: number; away: number }) => {
-    if (c.home >= c.draw && c.home >= c.away) return '1' as const;
-    if (c.away > c.draw) return '2' as const;
-    return 'X' as const;
-  };
+  const oddsQuery = useQuery({
+    queryKey: ['odds-h2h', featured?.homeName, featured?.awayName],
+    enabled: withOdds && Boolean(featured),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (!featured) return null;
+      return oddsApiAdapter.getH2HOdds(featured.homeName, featured.awayName);
+    },
+  });
+
+  const book = oddsQuery.data;
+  const edges =
+    featured && book
+      ? valueEdges(featured.estimate, {
+          home: book.home,
+          draw: book.draw,
+          away: book.away,
+        })
+      : null;
 
   return (
     <Screen>
       <Text style={styles.title}>Previsioni</Text>
+      <Text style={styles.sub}>Stima 1X2 dallo storico locale</Text>
 
-      <FadeIn delay={80} style={styles.featured}>
-        <View style={styles.featuredTop}>
-          <CompetitionBadge
-            name={featured.competition}
-            crestUrl={featured.competitionCrestUrl}
-          />
-          <TimeChip label={featured.kickoffLabel} />
-        </View>
-
-        <View style={styles.teamsRow}>
-          <View style={styles.teamBlock}>
-            <TeamCrest uri={featured.homeCrest} name={featured.home} size={52} delay={120} />
-            <Text style={styles.teamName}>{featured.home}</Text>
+      {featured ? (
+        <FadeIn delay={80} style={styles.featured}>
+          <View style={styles.featuredTop}>
+            <CompetitionBadge name={featured.competitionCode || 'H2H'} />
+            <Text style={styles.stimaBadge}>{featured.label}</Text>
           </View>
-          <Text style={styles.vs}>vs</Text>
-          <View style={styles.teamBlock}>
-            <TeamCrest uri={featured.awayCrest} name={featured.away} size={52} delay={180} />
-            <Text style={styles.teamName}>{featured.away}</Text>
-          </View>
-        </View>
 
-        <OddsBar
-          label="1"
-          value={featured.consensus.home}
-          odds={featured.odds.home}
-          delay={220}
-          emphasize={topKey(featured.consensus) === '1'}
-        />
-        <OddsBar
-          label="X"
-          value={featured.consensus.draw}
-          odds={featured.odds.draw}
-          delay={300}
-          emphasize={topKey(featured.consensus) === 'X'}
-        />
-        <OddsBar
-          label="2"
-          value={featured.consensus.away}
-          odds={featured.odds.away}
-          delay={380}
-          emphasize={topKey(featured.consensus) === '2'}
-        />
-      </FadeIn>
-
-      <Text style={styles.listTitle}>Altre</Text>
-      {rest.map((m, i) => {
-        const tip = topKey(m.consensus);
-        const pct = Math.round(
-          (tip === '1' ? m.consensus.home : tip === '2' ? m.consensus.away : m.consensus.draw) *
-            100,
-        );
-        return (
-          <PressableScale
-            key={m.matchId}
-            onPress={() => router.push(`/match/${m.matchId}`)}
-            style={styles.listRow}
-            scaleTo={0.98}>
-            <TeamCrest uri={m.homeCrest} name={m.home} size={32} delay={200 + i * 50} />
-            <View style={styles.listMain}>
-              <Text style={styles.listMatch}>
-                {m.home} – {m.away}
-              </Text>
-              <Text style={styles.listMeta}>{m.kickoffLabel}</Text>
+          <View style={styles.teamsRow}>
+            <View style={styles.teamBlock}>
+              <TeamCrest
+                uri={featured.homeCrest}
+                name={featured.homeName}
+                size={52}
+                delay={120}
+              />
+              <Text style={styles.teamName}>{featured.homeName}</Text>
             </View>
-            <TeamCrest uri={m.awayCrest} name={m.away} size={32} delay={240 + i * 50} />
-            <Text style={styles.listTip}>
-              {tip} · {pct}%
+            <Text style={styles.vs}>vs</Text>
+            <View style={styles.teamBlock}>
+              <TeamCrest
+                uri={featured.awayCrest}
+                name={featured.awayName}
+                size={52}
+                delay={180}
+              />
+              <Text style={styles.teamName}>{featured.awayName}</Text>
+            </View>
+          </View>
+
+          <OddsBar
+            label="1"
+            value={featured.estimate.home}
+            odds={book?.home}
+            delay={220}
+            emphasize={featured.tip === '1'}
+          />
+          <OddsBar
+            label="X"
+            value={featured.estimate.draw}
+            odds={book?.draw}
+            delay={300}
+            emphasize={featured.tip === 'X'}
+          />
+          <OddsBar
+            label="2"
+            value={featured.estimate.away}
+            odds={book?.away}
+            delay={380}
+            emphasize={featured.tip === '2'}
+          />
+
+          {book && edges ? (
+            <Text style={styles.valueLine}>
+              Quote {book.bookmaker}: value 1 {fmtEdge(edges.home)} · X{' '}
+              {fmtEdge(edges.draw)} · 2 {fmtEdge(edges.away)}
             </Text>
-          </PressableScale>
-        );
-      })}
+          ) : withOdds ? (
+            <Text style={styles.meta}>Quote bookmaker: caricamento o non trovate</Text>
+          ) : (
+            <Text style={styles.meta}>
+              Senza Odds API: solo stima storico (niente quote inventate)
+            </Text>
+          )}
+        </FadeIn>
+      ) : null}
+
+      <Text style={styles.listTitle}>Altre stime</Text>
+      {rest.map((m, i) => (
+        <PressableScale
+          key={m.id}
+          onPress={() => router.push(`/team/${m.homeTeamId}`)}
+          style={styles.listRow}
+          scaleTo={0.98}>
+          <TeamCrest uri={m.homeCrest} name={m.homeName} size={32} delay={200 + i * 40} />
+          <View style={styles.listMain}>
+            <Text style={styles.listMatch}>
+              {m.homeName} – {m.awayName}
+            </Text>
+            <Text style={styles.listMeta}>{m.label}</Text>
+          </View>
+          <TeamCrest uri={m.awayCrest} name={m.awayName} size={32} delay={240 + i * 40} />
+          <Text style={styles.listTip}>
+            {m.tip} · {Math.round(m.tipPct * 100)}%
+          </Text>
+        </PressableScale>
+      ))}
+
+      <Text style={styles.disclaimer}>
+        Informazioni sportive e lettura del mercato. Non è consulenza sulle scommesse.
+      </Text>
     </Screen>
   );
+}
+
+function fmtEdge(n: number) {
+  const pct = Math.round(n * 100);
+  return `${pct >= 0 ? '+' : ''}${pct}pp`;
 }
 
 const styles = StyleSheet.create({
@@ -106,7 +156,13 @@ const styles = StyleSheet.create({
     lineHeight: 50,
     color: colors.text,
     letterSpacing: 1,
+  },
+  sub: {
+    marginTop: spacing.xs,
     marginBottom: spacing.lg,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
   },
   featured: {
     padding: spacing.md,
@@ -122,6 +178,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
+  },
+  stimaBadge: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    color: colors.lime,
+    textTransform: 'uppercase',
   },
   teamsRow: {
     flexDirection: 'row',
@@ -147,6 +210,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textMuted,
     letterSpacing: 1,
+  },
+  meta: {
+    marginTop: spacing.sm,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  valueLine: {
+    marginTop: spacing.sm,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textSoft,
   },
   listTitle: {
     marginTop: spacing.xl,
@@ -185,5 +260,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.lime,
     marginLeft: spacing.xs,
+  },
+  disclaimer: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.textMuted,
   },
 });

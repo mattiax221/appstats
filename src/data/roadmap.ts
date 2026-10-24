@@ -50,13 +50,13 @@ export const roadmapPhases: RoadmapPhase[] = [
     phase: 'P4',
     title: 'Previsioni dallo storico',
     summary: '1X2 stima da form/H2H; quote bookmaker solo con chiave.',
-    status: 'next',
+    status: 'done',
   },
   {
     id: 'p5',
     phase: 'P5',
     title: 'Rifinitura',
     summary: 'Live best-effort, player stats, qualità complessiva.',
-    status: 'planned',
+    status: 'next',
   },
 ];

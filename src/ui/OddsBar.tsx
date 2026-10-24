@@ -6,14 +6,15 @@ import { colors, fonts, spacing } from './theme';
 
 type OddsBarProps = {
   label: string;
-  /** 0–1 normalized consensus probability. */
+  /** 0–1 normalized probability (stima or consensus). */
   value: number;
-  odds: number;
+  /** Decimal bookmaker odds — omit when no Odds API key / no market. */
+  odds?: number;
   delay?: number;
   emphasize?: boolean;
 };
 
-/** Odds consensus bar — width fills on enter (motion #3). */
+/** Probability bar — width fills on enter (motion #3). */
 export function OddsBar({
   label,
   value,
@@ -43,7 +44,11 @@ export function OddsBar({
       <View style={styles.meta}>
         <Text style={[styles.label, emphasize && styles.labelHot]}>{label}</Text>
         <Text style={styles.pct}>{pct}%</Text>
-        <Text style={styles.odds}>{odds.toFixed(2)}</Text>
+        {odds != null ? (
+          <Text style={styles.odds}>{odds.toFixed(2)}</Text>
+        ) : (
+          <Text style={styles.odds}>—</Text>
+        )}
       </View>
       <View style={styles.track}>
         <Animated.View
