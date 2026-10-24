@@ -17,6 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { QueryProvider } from '@/src/providers/QueryProvider';
+import { WebPhoneFrame } from '@/src/ui/WebPhoneFrame';
 import { colors, fonts } from '@/src/ui/theme';
 
 export { ErrorBoundary } from 'expo-router';
@@ -69,28 +70,30 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.night },
-          headerTintColor: colors.text,
-          headerTitleStyle: { fontFamily: fonts.bodyMedium },
-          headerShadowVisible: false,
-          contentStyle: { backgroundColor: colors.night },
-        }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="match/[id]"
-          options={{ title: 'Partita', headerBackTitle: 'Indietro' }}
-        />
-        <Stack.Screen
-          name="team/[id]"
-          options={{ title: 'Squadra', headerBackTitle: 'Indietro' }}
-        />
-        <Stack.Screen
-          name="roadmap"
-          options={{ title: 'Roadmap', headerBackTitle: 'Indietro' }}
-        />
-      </Stack>
+      <WebPhoneFrame>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.night },
+            headerTintColor: colors.text,
+            headerTitleStyle: { fontFamily: fonts.bodyMedium },
+            headerShadowVisible: false,
+            contentStyle: { backgroundColor: colors.night },
+          }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="match/[id]"
+            options={{ title: 'Partita', headerBackTitle: 'Indietro' }}
+          />
+          <Stack.Screen
+            name="team/[id]"
+            options={{ title: 'Squadra', headerBackTitle: 'Indietro' }}
+          />
+          <Stack.Screen
+            name="roadmap"
+            options={{ title: 'Roadmap', headerBackTitle: 'Indietro' }}
+          />
+        </Stack>
+      </WebPhoneFrame>
     </QueryProvider>
   );
 }

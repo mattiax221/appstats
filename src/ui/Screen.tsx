@@ -39,16 +39,14 @@ export function Screen({
         locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
-      {/* Floodlight wash from top */}
       <LinearGradient
         colors={['rgba(255,248,230,0.09)', 'transparent']}
         style={styles.flood}
         pointerEvents="none"
       />
-      {/* Pitch midline atmosphere */}
       <View style={styles.midline} pointerEvents="none" />
       <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
-        {inner}
+        <View style={styles.column}>{inner}</View>
       </SafeAreaView>
     </View>
   );
@@ -58,6 +56,8 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.night },
   flex: { flex: 1 },
   fill: { flex: 1 },
+  /** Keeps content phone-width when parent is already framed; harmless on native. */
+  column: { flex: 1, width: '100%', maxWidth: 430, alignSelf: 'center' },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,

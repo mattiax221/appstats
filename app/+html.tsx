@@ -39,4 +39,12 @@ body {
   background-color: #050A08;
   margin: 0;
 }
+/* Desktop: matchday night around the phone column */
+#root {
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(31, 107, 62, 0.35), transparent 55%),
+    #050A08;
+}
 `;
