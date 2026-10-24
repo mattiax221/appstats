@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { UiMatch } from '@/src/data/mock/fixtures';
+import type { Match } from '@/src/domain';
 
 import { CompetitionBadge, TimeChip } from './Chip';
 import { LiveBadge } from './LiveBadge';
@@ -11,8 +11,7 @@ import { TeamCrest } from './TeamCrest';
 import { colors, fonts, spacing } from './theme';
 
 type MatchRowProps = {
-  match: UiMatch;
-  /** Base delay for crest stagger. */
+  match: Match & { liveMinute?: number; competitionCrestUrl?: string };
   enterDelay?: number;
 };
 

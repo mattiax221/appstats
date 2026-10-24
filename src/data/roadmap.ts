@@ -22,14 +22,14 @@ export const roadmapPhases: RoadmapPhase[] = [
     phase: 'P1',
     title: 'Partite e classifiche',
     summary: 'Calendario, risultati e tabelle da football-data.org.',
-    status: 'next',
+    status: 'done',
   },
   {
     id: 'p2',
     phase: 'P2',
     title: 'Statistiche profonde',
     summary: 'Schede squadra, forma, H2H e stats match.',
-    status: 'planned',
+    status: 'next',
   },
   {
     id: 'p3',

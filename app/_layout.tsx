@@ -92,6 +92,10 @@ export default function RootLayout() {
             name="roadmap"
             options={{ title: 'Roadmap', headerBackTitle: 'Indietro' }}
           />
+          <Stack.Screen
+            name="standings/[competitionId]"
+            options={{ title: 'Classifica', headerBackTitle: 'Indietro' }}
+          />
         </Stack>
       </WebPhoneFrame>
     </QueryProvider>

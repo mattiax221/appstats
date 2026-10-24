@@ -3,9 +3,13 @@
  * Copy `.env.example` → `.env` and fill values locally.
  */
 export const env = {
-  footballDataApiKey: process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY ?? '',
-  apiFootballApiKey: process.env.EXPO_PUBLIC_API_FOOTBALL_API_KEY ?? '',
-  oddsApiKey: process.env.EXPO_PUBLIC_ODDS_API_KEY ?? '',
+  /** Prefer TOKEN name; API_KEY kept as alias. */
+  footballDataApiKey:
+    process.env.EXPO_PUBLIC_FOOTBALL_DATA_TOKEN?.trim() ||
+    process.env.EXPO_PUBLIC_FOOTBALL_DATA_API_KEY?.trim() ||
+    '',
+  apiFootballApiKey: process.env.EXPO_PUBLIC_API_FOOTBALL_API_KEY?.trim() || '',
+  oddsApiKey: process.env.EXPO_PUBLIC_ODDS_API_KEY?.trim() || '',
   footballDataBaseUrl:
     process.env.EXPO_PUBLIC_FOOTBALL_DATA_BASE_URL ??
     'https://api.football-data.org/v4',
@@ -27,3 +31,6 @@ export function hasApiFootballKey(): boolean {
 export function hasOddsApiKey(): boolean {
   return Boolean(env.oddsApiKey);
 }
+
+export const FOOTBALL_DATA_REGISTER_URL =
+  'https://www.football-data.org/client/register';
